@@ -1,4 +1,4 @@
-package OutApi
+package main
 
 import (
 	"errors"
@@ -8,20 +8,20 @@ var currentId int
 
 var todos Todos
 
-type Mysql struct {
-	user   string
-	host   string
-	port   string
-	passwd string
-}
+//type Mysql struct {
+//	user   string
+//	host   string
+//	port   string
+//	passwd string
+//}
 
 // 数据库信息
-var mysql = Mysql{
-	"root",
-	"127.0.0.1",
-	"3306",
-	"k8U@*hy4icomxz",
-}
+//var mysql = Mysql{
+//	"root",
+//	"127.0.0.1",
+//	"3306",
+//	"k8U@*hy4icomxz",
+//}
 
 // Give us some seed data
 func init() {

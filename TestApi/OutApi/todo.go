@@ -1,4 +1,4 @@
-package OutApi
+package main
 
 import "time"
 
