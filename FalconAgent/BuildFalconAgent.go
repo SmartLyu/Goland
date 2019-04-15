@@ -13,8 +13,8 @@ import (
 	"strings"
 )
 
-var installUrl = "http://120.92.156.238:8888/download/falcon-agent.tar.gz"
-var falconDir = "/work/servers/falcon-agent"
+var installUrl = "http://120.92.156.238:8888/download/FalconAgent.tar.gz"
+var falconDir = "/work/servers/FalconAgent"
 
 // 获取变量值
 var (
@@ -125,13 +125,13 @@ func main() {
 	}
 
 	// 下载agent服务包
-	if err := myCmd("/usr/bin/wget", "-q", installUrl, "-O", "/work/src/falcon-agent.tar.gz"); err != nil {
+	if err := myCmd("/usr/bin/wget", "-q", installUrl, "-O", "/work/src/FalconAgent.tar.gz"); err != nil {
 		fmt.Println("wget tar file error")
 		log.Fatal(err)
 	}
 
 	// 解压数据包
-	if err := myCmd("/bin/tar", "-xf", "/work/src/falcon-agent.tar.gz", "-C", falconDir); err != nil {
+	if err := myCmd("/bin/tar", "-xf", "/work/src/FalconAgent.tar.gz", "-C", falconDir); err != nil {
 		fmt.Println("untar is error")
 		log.Fatal(err)
 	}
