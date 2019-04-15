@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"time"
 )
 
 var currentId int
@@ -20,20 +21,28 @@ var todos Todos
 //	"root",
 //	"127.0.0.1",
 //	"3306",
-//	"k8U@*hy4icomxz",
+//	"passwd",
 //}
 
 // Give us some seed data
 func init() {
 	first := NewTodo()
 	RepoCreateTodo(first)
+
 	first = Todo{
 		Id:        2,
 		Name:      "Write presentation",
 		Completed: true,
+		Due:       time.Now(),
 	}
 	RepoCreateTodo(first)
-	RepoCreateTodo(Todo{Name: "Host meetup"})
+
+	RepoCreateTodo(Todo{
+		3,
+		"Host meetup",
+		true,
+		time.Now(),
+	})
 }
 
 func RepoFindTodo(id int) Todo {
