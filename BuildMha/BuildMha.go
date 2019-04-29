@@ -17,7 +17,7 @@ import (
 	"time"
 )
 
-var installUrl = "http://120.92.156.238:8888/mha/"
+var installUrl = "http://139.159.233.66:8888/mha/"
 var mhaConfigDir = "/work/config/mha/"
 var mhaConfigFile = "mha.conf"
 
@@ -161,7 +161,7 @@ func buildMaster() {
 		cmd := "/usr/bin/yum install -y keepalived ; " +
 			"/usr/bin/wget " + installUrl + "keepalived.conf -O /etc/keepalived/keepalived.conf ; " +
 			"/usr/bin/sed -i 's/mip/" + mip + "/' /etc/keepalived/keepalived.conf ; " +
-			"/usr/bin/sed -i 's/BACKUP/MASTER/' /etc/keepalived/keepalived.conf ;" +
+			//	"/usr/bin/sed -i 's/BACKUP/MASTER/' /etc/keepalived/keepalived.conf ;" +
 			"/usr/bin/sed -i 's/vip/" + vip + "/' /etc/keepalived/keepalived.conf ; " +
 			"/usr/bin/sed -i 's/oip/" + bm_cip + "/' /etc/keepalived/keepalived.conf ; " +
 			"/usr/bin/systemctl restart keepalived"
