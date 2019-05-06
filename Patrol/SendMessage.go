@@ -12,7 +12,7 @@ import (
 
 const (
 	//发送消息使用导的url
-	sendurl = `https://qyapi.weixin.qq.com/cgi-bin/message/send?accessToken=`
+	sendurl = `https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token=`
 	//获取token使用导的url
 	getToken = `https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=`
 )
@@ -41,8 +41,7 @@ type sendMsgError struct {
 }
 
 func main() {
-
-	touser := "@all"
+	touser := "1"
 	agentid := 0
 	content := "Test Api"
 	corpid := "wwd0b64b830dd50312"
