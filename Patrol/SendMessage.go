@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"flag"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -42,35 +41,17 @@ type sendMsgError struct {
 }
 
 func main() {
-	mfile := flag.String("m", "", "-m msg.txt 从配置文件读取配置发送消息")
-	touser := flag.String("t", "@all", "-t user 直接接收消息的用户昵称")
-	agentid := flag.Int("i", 0, "-i 0 指定agentid")
-	content := flag.String("c", "Hello world", "-c 'Hello world' 指定要发送的内容")
-	corpid := flag.String("p", "", "-p corpid 必须指定")
-	corpsecret := flag.String("s", "", "-s corpsecret 必须指定")
-	flag.Parse()
 
-	if *corpid == "" || *corpsecret == "" {
-		flag.Usage()
-		return
-	}
+	touser := "@all"
+	agentid := 0
+	content := "Test Api"
+	corpid := "wwd0b64b830dd50312"
+	corpsecret := "Mebw1BA1cZBY17FrGJcRJniaGWt_LCQe_DGyPLDznRI"
 
-	var m = sendMsg{Touser: *touser, Msgtype: "text", Agentid: *agentid, Text: map[string]string{"content": *content}}
+	var m = sendMsg{Touser: touser, Msgtype: "text", Agentid: agentid, Text: map[string]string{"content": content}}
 
-	if *mfile != "" {
-		buf, err := Parse(*mfile)
-		if err != nil {
-			println(err.Error())
-			return
-		}
-		err = json.Unmarshal(buf, &m)
-		if err != nil {
-			println(err)
-			return
-		}
-	}
 	///-p "wx2468f5838693e123" -s "JbjkM1jYq8g3GaHjOTgj27y4n4_7Dsv4FV94I5BMRSrBsm_aTsMUVJMhGu_DFGDSF"
-	token, err := GetToken(*corpid, *corpsecret)
+	token, err := GetToken(corpid, corpsecret)
 	if err != nil {
 		println(err.Error())
 		return
