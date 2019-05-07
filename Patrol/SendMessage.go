@@ -23,7 +23,7 @@ type corpText struct {
 	touser     string
 	toparty    string
 	totag      string
-	agentid    string
+	agentid    int
 	content    string
 	safe       string
 }
