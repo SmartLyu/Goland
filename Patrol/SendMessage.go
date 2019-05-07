@@ -17,6 +17,17 @@ const (
 	getToken = `https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=`
 )
 
+type corpText struct {
+	corpid     string
+	corpsecret string
+	touser     string
+	toparty    string
+	totag      string
+	agentid    string
+	content    string
+	safe       string
+}
+
 type accessToken struct {
 	TimeAccessToken string `json:"accessToken"`
 	ExpiresIn       int    `json:"expires_in"`
@@ -40,16 +51,12 @@ type sendMsgError struct {
 	Errmsg  string `json:"errmsg"`
 }
 
-func main() {
-	touser := "1"
-	agentid := 0
-	content := "Test Api"
-	corpid := "wwd0b64b830dd50312"
-	corpsecret := "Mebw1BA1cZBY17FrGJcRJniaGWt_LCQe_DGyPLDznRI"
+func SendWeiXinMessage(id corpText) {
+	corpid := id.corpid
+	corpsecret := id.corpsecret
 
-	var m = sendMsg{Touser: touser, Msgtype: "text", Agentid: agentid, Text: map[string]string{"content": content}}
+	var m = sendMsg{Touser: id.touser, Toparty: id.toparty, Totag: id.totag, Msgtype: "text", Agentid: id.agentid, Text: map[string]string{"content": id.content}}
 
-	///-p "wx2468f5838693e123" -s "JbjkM1jYq8g3GaHjOTgj27y4n4_7Dsv4FV94I5BMRSrBsm_aTsMUVJMhGu_DFGDSF"
 	token, err := GetToken(corpid, corpsecret)
 	if err != nil {
 		println(err.Error())
