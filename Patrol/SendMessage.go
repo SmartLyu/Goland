@@ -1,13 +1,11 @@
 package main
 
 import (
-	"bufio"
 	"bytes"
 	"encoding/json"
 	"errors"
 	"io/ioutil"
 	"net/http"
-	"os"
 )
 
 const (
@@ -29,8 +27,8 @@ type corpText struct {
 }
 
 type accessToken struct {
-	TimeAccessToken string `json:"accessToken"`
-	ExpiresIn       int    `json:"expires_in"`
+	Access_token string `json:"access_token"`
+	Expires_in   int    `json:"expires_in"`
 }
 
 var requestError = errors.New("request error,check url or network")
@@ -51,27 +49,35 @@ type sendMsgError struct {
 	Errmsg  string `json:"errmsg"`
 }
 
-func SendWeiXinMessage(id corpText) {
+func SendWeiXinMessage(id corpText) error {
 	corpid := id.corpid
 	corpsecret := id.corpsecret
 
-	var m = sendMsg{Touser: id.touser, Toparty: id.toparty, Totag: id.totag, Msgtype: "text", Agentid: id.agentid, Text: map[string]string{"content": id.content}}
+	var m = sendMsg{
+		Touser:  id.touser,
+		Toparty: id.toparty,
+		Totag:   id.totag,
+		Msgtype: "text",
+		Agentid: id.agentid,
+		Text:    map[string]string{"content": id.content},
+	}
 
 	token, err := GetToken(corpid, corpsecret)
 	if err != nil {
-		println(err.Error())
-		return
+		return err
 	}
 
 	buf, err := json.Marshal(m)
 	if err != nil {
-		return
+		return err
 	}
 
-	err = SendMsg(token.TimeAccessToken, buf)
+	err = SendMsg(token.Access_token, buf)
 	if err != nil {
-		println(err.Error())
+		return err
 	}
+
+	return nil
 }
 
 //发送消息.msgbody 必须是 API支持的类型
@@ -83,11 +89,14 @@ func SendMsg(TimeAccessToken string, msgbody []byte) error {
 	}
 	buf, _ := ioutil.ReadAll(resp.Body)
 	_ = resp.Body.Close()
+
 	var e sendMsgError
 	err = json.Unmarshal(buf, &e)
+
 	if err != nil {
 		return err
 	}
+
 	if e.Errcode != 0 && e.Errmsg != "ok" {
 		return errors.New(string(buf))
 	}
@@ -95,59 +104,29 @@ func SendMsg(TimeAccessToken string, msgbody []byte) error {
 }
 
 //通过corpid 和 corpsecret 获取token
-func GetToken(corpid, corpsecret string) (at *accessToken, err error) {
+func GetToken(corpid, corpsecret string) (at accessToken, err error) {
+
 	resp, err := http.Get(getToken + corpid + "&corpsecret=" + corpsecret)
 	if err != nil {
 		return
 	}
+
 	defer func() {
 		_ = resp.Body.Close()
 	}()
+
 	if resp.StatusCode != 200 {
 		err = requestError
 		return
 	}
+
 	buf, _ := ioutil.ReadAll(resp.Body)
 	err = json.Unmarshal(buf, &at)
-	if at.TimeAccessToken == "" {
+	if err != nil {
+		return
+	}
+	if at.Access_token == "" {
 		err = errors.New("corpid or corpsecret is error")
 	}
-	return at, err
-}
-
-func Parse(jsonpath string) ([]byte, error) {
-	var zs = []byte("//")
-	File, err := os.Open(jsonpath)
-	if err != nil {
-		return nil, err
-	}
-
-	defer func() {
-		_ = File.Close()
-	}()
-
-	var buf []byte
-	b := bufio.NewReader(File)
-	for {
-		line, _, err := b.ReadLine()
-		if err != nil {
-			if err.Error() == "EOF" {
-				break
-			}
-			return nil, err
-		}
-		line = bytes.TrimSpace(line)
-		if len(line) <= 0 {
-			continue
-		}
-		index := bytes.Index(line, zs)
-		if index == 0 {
-			continue
-		}
-		if index > 0 {
-			line = line[:index]
-		}
-		buf = append(buf, line...)
-	}
-	return buf, nil
+	return
 }
