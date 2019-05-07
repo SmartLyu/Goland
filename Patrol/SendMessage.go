@@ -95,7 +95,7 @@ func SendMsg(TimeAccessToken string, msgbody []byte) error {
 }
 
 //通过corpid 和 corpsecret 获取token
-func GetToken(corpid, corpsecret string) (at accessToken, err error) {
+func GetToken(corpid, corpsecret string) (at *accessToken, err error) {
 	resp, err := http.Get(getToken + corpid + "&corpsecret=" + corpsecret)
 	if err != nil {
 		return
@@ -110,9 +110,9 @@ func GetToken(corpid, corpsecret string) (at accessToken, err error) {
 	buf, _ := ioutil.ReadAll(resp.Body)
 	err = json.Unmarshal(buf, &at)
 	if at.TimeAccessToken == "" {
-		err = errors.New("corpid or corpsecret error.")
+		err = errors.New("corpid or corpsecret is error")
 	}
-	return
+	return at, err
 }
 
 func Parse(jsonpath string) ([]byte, error) {
