@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -61,8 +62,8 @@ func UpDataFile(uf UploadFile, upToken string) error {
 	recordDir := "/Users/jemy/Temp/progress"
 	mErr := os.MkdirAll(recordDir, 0755)
 	if mErr != nil {
-		fmt.Println("mkdir for record dir error,", mErr)
-		return mErr
+		return errors.New("mkdir for record dir error:" + mErr.Error())
+
 	}
 
 	recordPath := filepath.Join(recordDir, recordKey)

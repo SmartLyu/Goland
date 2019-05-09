@@ -50,7 +50,6 @@ func CheckFile(uf UploadFile, file string, bucketManager *storage.BucketManager)
 func ImportFile(uf UploadFile, file string, upToken string, bucketManager *storage.BucketManager) error {
 
 	tmpString := strings.Split(file, "/")
-	fmt.Println(file)
 	uf.LocalFile = file
 	uf.KeyName = tmpString[len(tmpString)-1]
 	isUpload, err := CheckFile(uf, file, bucketManager)
@@ -62,6 +61,8 @@ func ImportFile(uf UploadFile, file string, upToken string, bucketManager *stora
 		if err := UpDataFile(uf, upToken); err != nil {
 			return err
 		}
+	} else {
+		fmt.Println(uf.LocalFile + " is latest")
 	}
 
 	return nil

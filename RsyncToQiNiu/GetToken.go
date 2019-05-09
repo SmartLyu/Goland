@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/qiniu/api.v7/auth"
 	"github.com/qiniu/api.v7/auth/qbox"
 	"github.com/qiniu/api.v7/storage"
@@ -22,7 +21,6 @@ func UpDataGetToken(uf UploadFile) string {
 	putPolicy.Expires = 7200 //示例2小时有效期
 
 	upToken := putPolicy.UploadToken(mac)
-	fmt.Println(upToken)
 	return upToken
 }
 
