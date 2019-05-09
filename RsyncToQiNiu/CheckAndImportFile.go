@@ -47,6 +47,7 @@ func CheckFile(uf UploadFile, file string, bucketManager *storage.BucketManager)
 	return false, nil
 }
 
+// 判断是否上传后，上传文件
 func ImportFile(uf UploadFile, file string, upToken string, bucketManager *storage.BucketManager) error {
 
 	tmpString := strings.Split(file, "/")

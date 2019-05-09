@@ -24,7 +24,7 @@ func UpDataGetToken(uf UploadFile) string {
 	return upToken
 }
 
-// 获取查看文件信息的token
+// 获取查看文件信息的认证
 func GetFileData(uf UploadFile) *storage.BucketManager {
 	accessKeyDefault := "Q1j8ZZstQpAwpobfAeldBvpPUTV1t53P0M5uRBr2"
 	secretKeyDefault := "Vi8DBrwrKCFwU1liP1qCGWVsHqpHImDFuII4fgY-"

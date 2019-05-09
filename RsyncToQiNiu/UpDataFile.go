@@ -33,7 +33,7 @@ type ProgressRecord struct {
 	Progresses []storage.BlkputRet `json:"progresses"`
 }
 
-// 上传文件
+// 上传文件，支持断点续传
 func UpDataFile(uf UploadFile, upToken string) error {
 	localFile := uf.LocalFile
 	key := uf.KeyName
