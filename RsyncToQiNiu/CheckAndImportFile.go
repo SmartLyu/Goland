@@ -33,7 +33,7 @@ func CheckFile(uf UploadFile, file string, bucketManager *storage.BucketManager)
 	key := uf.KeyName
 	fileInfo, err := bucketManager.Stat(bucket, key)
 	if err != nil {
-		return false, err
+		return true, nil
 	}
 	fileTime, err := GetFileModTime(file)
 	if err != nil {

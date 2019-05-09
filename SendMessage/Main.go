@@ -8,8 +8,9 @@ import (
 
 func main() {
 	id := SecretId
-	id.content = "Hello World!"
+
 	flag.StringVar(&id.content, "message", "Hello World", "the message to Lyu weixin")
+	flag.Parse()
 
 	if err := SendWeiXinMessage(id); err != nil {
 		log.Fatal(err)
