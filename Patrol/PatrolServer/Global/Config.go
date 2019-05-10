@@ -1,0 +1,33 @@
+package Global
+
+import (
+	"strconv"
+	"time"
+)
+
+var (
+	ApiPost          = "8666"
+	DataFileDir      = "/work/data/patril/" // 存放历史监控信息
+	DataFileName     = ".monitor.log"       // 监控后缀名
+	LogFileDir       = "/work/logs/patril/" // 日志存放目录(提前准备好)
+	LogFileName      = ".patril.log"        // 日志后缀名
+	AcessLogFileName = ".Access.log"        // 记录日志信息
+)
+
+// 自动分隔错误日志
+func UpdateLog() (string, string) {
+	return LogFileDir + time.Now().Format("2006-01") + "/",
+		LogFileDir + time.Now().Format("2006-01") + "/" + strconv.Itoa(time.Now().Day()) + LogFileName
+}
+
+// 自动分隔错误日志
+func UpdateAcessLog() (string, string) {
+	return LogFileDir + time.Now().Format("2006-01") + "/" ,
+		LogFileDir + time.Now().Format("2006-01") + "/" + strconv.Itoa(time.Now().Day()) + AcessLogFileName
+}
+
+// 自动分隔巡查信息
+func UpdateFile() (string, string) {
+	return DataFileDir + time.Now().Format("2006-01") + "/",
+		DataFileDir + time.Now().Format("2006-01") + "/" + strconv.Itoa(time.Now().Day()) + DataFileName
+}

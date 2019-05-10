@@ -1,22 +1,17 @@
 package Api
 
 import (
-	"log"
+	"../File"
 	"net/http"
 	"time"
 )
 
+// 记录访问记录
 func Logger(inner http.Handler, name string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		inner.ServeHTTP(w, r)
 
-		log.Printf(
-			"%s\t%s\t%s\t%s",
-			r.Method,
-			r.RequestURI,
-			name,
-			time.Since(start),
-		)
+		File.WriteAccessLog(r.Method+"\t"+r.RequestURI+"\t"+name+"\t"+time.Since(start).String())
 	})
 }

@@ -2,9 +2,10 @@ package main
 
 import (
 	"./Api"
+	"./Global"
 )
 
 func main() {
-	Api.StartApi("8666")
+	Api.StartApi(Global.ApiPost)
 	//CallPolice.CallPolice("hello world")
 }
