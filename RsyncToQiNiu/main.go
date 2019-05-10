@@ -4,6 +4,7 @@ import (
 	"errors"
 	"flag"
 	"log"
+	"strings"
 )
 
 // 设置key的默认值
@@ -19,8 +20,8 @@ func main() {
 
 	// 所有参数外部设定，保持程序无状态
 	flag.StringVar(&uf.Bucket, "bucket", "error", "输入桶的名字")
-	flag.StringVar(&dir, "dir", "error", "输入本地的上传目录")
-	flag.StringVar(&uf.LocalFile, "file", "error", "输入本地的上传文件位置")
+	flag.StringVar(&dir, "dir", "", "输入本地的上传目录(上传过滤该目录名)，不能以/结尾")
+	flag.StringVar(&uf.LocalFile, "file", "", "输入本地的上传文件位置")
 	flag.StringVar(&accessKey, "accessKey", "***", "输入传输账户accesskey")
 	flag.StringVar(&secretKey, "secretKey", "***", "输入传输账户secretKey")
 	flag.Parse()
@@ -34,7 +35,7 @@ func main() {
 		accessKey = accessKeyDefault
 	}
 
-	if uf.Bucket == "error" || (dir == "error" && uf.LocalFile == "error") {
+	if uf.Bucket == "error" || ( dir == "" && uf.LocalFile ==""){
 		flag.Usage()
 		return
 	}
@@ -44,21 +45,31 @@ func main() {
 	bucketManager := GetFileData(uf)
 
 	// 上传单个文件
-	if uf.LocalFile != "error" {
-		if err := ImportFile(uf, uf.LocalFile, upToken, bucketManager); err != nil {
+	if uf.LocalFile != "" {
+		tmpString := strings.Split(uf.LocalFile, "")
+		if dir != "" {
+			tmpString = strings.Split(uf.LocalFile, dir+"/")
+		}
+		uf.KeyName = tmpString[1]
+		if uf.KeyName == "" {
+			log.Fatal(errors.New("the dir sets error"))
+		}
+
+		if err := UpDataFile(uf, upToken); err != nil {
 			log.Fatal(err)
 		}
+		return
 	}
 
 	// 上传整个目录
-	if dir != "error" {
+	if dir != "" {
 		files, err := GetAllFiles(dir)
 		if err != nil {
 			log.Fatal(errors.New("Get dir error:" + err.Error()))
 		}
 
 		for _, i := range files {
-			if err := ImportFile(uf, i, upToken, bucketManager); err != nil {
+			if err := ImportFile(uf, i, dir, upToken, bucketManager); err != nil {
 				log.Fatal(err)
 			}
 		}

@@ -59,11 +59,10 @@ func UpDataFile(uf UploadFile, upToken string) error {
 	recordKey := md5Hex(fmt.Sprintf("%s:%s:%s:%s", bucket, key, localFile, fileLmd)) + ".progress"
 
 	// 指定的进度文件保存目录，实际情况下，请确保该目录存在，而且只用于记录进度文件
-	recordDir := "/Users/jemy/Temp/progress"
+	recordDir := "/tmp"
 	mErr := os.MkdirAll(recordDir, 0755)
 	if mErr != nil {
 		return errors.New("mkdir for record dir error:" + mErr.Error())
-
 	}
 
 	recordPath := filepath.Join(recordDir, recordKey)
