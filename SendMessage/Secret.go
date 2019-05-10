@@ -1,10 +1,9 @@
 package main
 
 var SecretId = corpText{
-	corpid:     "",
-	corpsecret: "",
-	touser:     "@all",
+	corpid:     "ww77f7483dada51439",
+	corpsecret: "_ebRca-EqhFei9OKhR0l2k2--dHFANx-1qfdVnh70Kg",
+	toparty:     "1",
 	agentid:    1000002,
 	content:    "Test Api",
-	safe:       "1",
-}
+	safe:       "1"}
