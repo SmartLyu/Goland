@@ -48,7 +48,7 @@ func CheckFile(uf UploadFile, file string, bucketManager *storage.BucketManager)
 }
 
 // 判断是否上传后，上传文件
-func ImportFile(uf UploadFile, file string, dir string, upToken string, bucketManager *storage.BucketManager) error {
+func ImportFile(uf UploadFile, file string, dir string, upToken string, bucketManager *storage.BucketManager,addname string) error {
 
 	tmpString := strings.Split(file, "")
 	if dir != "" {
@@ -57,6 +57,7 @@ func ImportFile(uf UploadFile, file string, dir string, upToken string, bucketMa
 
 	uf.LocalFile = file
 	uf.KeyName = tmpString[1]
+	uf.KeyName = addname + uf.KeyName
 	if uf.KeyName == "" {
 		return errors.New("the dir sets error")
 	}

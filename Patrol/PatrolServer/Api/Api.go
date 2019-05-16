@@ -1,12 +1,13 @@
 package Api
 
 import (
-	"log"
+	"../File"
+	"../Global"
 	"net/http"
 )
 
 func StartApi(port string) {
-
 	router := NewRouter()
-	log.Fatal(http.ListenAndServe(":"+port, router))
+	File.WriteErrorLog(http.ListenAndServe(":"+port, router).Error())
+	Global.ListenSig <- 0
 }

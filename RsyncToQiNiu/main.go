@@ -17,6 +17,7 @@ func main() {
 
 	var uf UploadFile
 	var dir string
+	var name string
 
 	// 所有参数外部设定，保持程序无状态
 	flag.StringVar(&uf.Bucket, "bucket", "error", "输入桶的名字")
@@ -24,6 +25,7 @@ func main() {
 	flag.StringVar(&uf.LocalFile, "file", "", "输入本地的上传文件位置")
 	flag.StringVar(&accessKey, "accessKey", "***", "输入传输账户accesskey")
 	flag.StringVar(&secretKey, "secretKey", "***", "输入传输账户secretKey")
+	flag.StringVar(&name, "addName", "", "输入传输后在文件头")
 	flag.Parse()
 
 	// 如果需要设定默认值可以再下面设定
@@ -35,7 +37,7 @@ func main() {
 		accessKey = accessKeyDefault
 	}
 
-	if uf.Bucket == "error" || ( dir == "" && uf.LocalFile ==""){
+	if uf.Bucket == "error" || (dir == "" && uf.LocalFile == "") {
 		flag.Usage()
 		return
 	}
@@ -51,6 +53,7 @@ func main() {
 			tmpString = strings.Split(uf.LocalFile, dir+"/")
 		}
 		uf.KeyName = tmpString[1]
+		uf.KeyName = name + uf.KeyName
 		if uf.KeyName == "" {
 			log.Fatal(errors.New("the dir sets error"))
 		}
@@ -69,7 +72,7 @@ func main() {
 		}
 
 		for _, i := range files {
-			if err := ImportFile(uf, i, dir, upToken, bucketManager); err != nil {
+			if err := ImportFile(uf, i, dir, upToken, bucketManager, name); err != nil {
 				log.Fatal(err)
 			}
 		}

@@ -1,19 +1,16 @@
 package CallPolice
 
 import (
-	"fmt"
-	"log"
+	"../File"
 )
 
 func CallPolice(message string) {
 	id := SecretId
-	id.content = message
+	id.content = "巡查异常：\n   "+message
 
 	if err := SendWeiXinMessage(id); err != nil {
-		log.Fatal(err)
+		File.WriteErrorLog(err.Error())
 	} else {
-		fmt.Println("Message:")
-		fmt.Println(id.content)
-		fmt.Println("to ", id.agentid, "successfully")
+		File.WriteInfoLog("Message:" + id.content + "to " + string(id.agentid) + "successfully")
 	}
 }

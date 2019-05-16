@@ -32,16 +32,99 @@ func NewRouter() *mux.Router {
 }
 
 var routes = Routes{
+	// 获取指定日期的监控信息，格式   url?time=年.月.日&key=关机子
 	Route{
-		"Index",
+		"GetInfo",
 		"GET",
 		"/monitor/info",
-		ShowMonitorInfo,
+		ReturnMonitorInfo,
 	},
+
+	// 收集监控数据并保存处理
 	Route{
-		"TodoCreate",
+		"MonitorCollect",
 		"POST",
 		"/monitor/collect",
 		PostMonitorInfo,
+	},
+
+	// 收集nat机器中记录的host信息
+	Route{
+		"MonitorCollect",
+		"POST",
+		"/monitor/nat",
+		PostNatInfo,
+	},
+
+	// 新增nat机器
+	Route{
+		"AddNat",
+		"POST",
+		"/admin/add",
+		AddNatMonitor,
+	},
+
+	// 修改nat机器
+	Route{
+		"AddNat",
+		"POST",
+		"/admin/updata",
+		UpdataNatMonitor,
+	},
+
+	// 删除nat机器
+	Route{
+		"AddNat",
+		"POST",
+		"/admin/del",
+		DeleteNatMonitor,
+	},
+
+	// 获取所有nat机器信息
+	Route{
+		"AddNat",
+		"GET",
+		"/admin/select",
+		SelectNatMonitor,
+	},
+
+	// 重新读取crontab信息
+	Route{
+		"AddNat",
+		"POST",
+		"/crontab/reload",
+		ReloadCrontabNat,
+	},
+
+	// 控制coco机器监控某nat机器，格式  url?nat=IP地址
+	Route{
+		"MonitorNat",
+		"POST",
+		"/monitor/nat",
+		ReturnNatMonitor,
+	},
+
+	// 控制coco机器监控所有nat机器
+	Route{
+		"MonitorNat",
+		"POST",
+		"/monitor/all",
+		ReturnAllNatMonitor,
+	},
+
+	// 获取监控脚本
+	Route{
+		"MonitorShell",
+		"GET",
+		"/shell/monitor",
+		ReturnMonitorShell,
+	},
+
+	// 获取nat机器提权脚本
+	Route{
+		"NatShell",
+		"GET",
+		"/shell/nat",
+		ReturnNatShell,
 	},
 }
