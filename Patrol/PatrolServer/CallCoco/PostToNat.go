@@ -7,6 +7,7 @@ import (
 	"strings"
 )
 
+// 连接coco服务器的接口
 func httpPostJson(jsonStr string,port string) error {
 
 	url := Global.CocoUrl

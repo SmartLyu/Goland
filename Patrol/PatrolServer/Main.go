@@ -10,7 +10,9 @@ import (
 func main() {
 	Mysql.InitDB()
 	go Api.StartApi(Global.ApiPost)
+	go Api.StartPublicApi(Global.ApiPublicPost)
 	CallCoco.StartAllCrontab()
 	CallCoco.CrontabToCheckHosts()
 	<-Global.ListenSig
+	<-Global.ListenPublicSig
 }

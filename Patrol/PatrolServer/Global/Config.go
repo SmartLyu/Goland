@@ -6,6 +6,7 @@ import (
 
 var (
 	ApiPost          = "8666"                         // 程序端口
+	ApiPublicPost    = "8686"                         // 对外程序端口
 	DataFileDir      = "/work/data/patril/"           // 存放历史监控信息
 	DataFileName     = ".monitor.log"                 // 监控后缀名
 	LogFileDir       = "/work/logs/patril/"           // 日志存放目录(提前准备好)
@@ -14,6 +15,7 @@ var (
 	MonitorShellFile = "/work/sh/PatrolMonitor.sh"    // 巡查脚本存放位置
 	NatShellFile     = "/work/sh/NatPatrol.sh"        // Nat使用的巡查脚本存放位置
 	ListenSig        = make(chan int)                 // 监听后台阻塞信号
+	ListenPublicSig  = make(chan int)                 // 监听后台公共端口阻塞信号
 	CocoUrl          = "http://10.4.0.4:8666/monitor" // coco的端口
 )
 

@@ -7,7 +7,7 @@ var (
 	ApiPost             = "8666"
 	SshUser             = "work"
 	Sshkey              = "/work/apps/.secret"
-	NatShellDownloadUrl = "134.175.50.184:8666/shell/nat"
+	NatShellDownloadUrl = "134.175.50.184:8686/shell/nat"
 )
 
 func PostJson(message string, status string) string {

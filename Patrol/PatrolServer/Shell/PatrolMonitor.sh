@@ -11,7 +11,7 @@ TIMEOUT='10'
 USER=work
 
 STEPLENTH='60'
-URL="134.175.50.184:8666/monitor/collect"
+URL="134.175.50.184:8686/monitor/collect"
 HOST=${HOSTNAME}
 LOGDIR="/work/logs/openfalcon"
 LOGFILE="${LOGDIR}/patrol-monitor.log"

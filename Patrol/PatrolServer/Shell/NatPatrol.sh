@@ -11,12 +11,12 @@ TIMEOUT='10'
 USER=work
 
 STEPLENTH='60'
-URL="134.175.50.184:8666/monitor/collect"
-HOSTSURL="134.175.50.184:8666/monitor/nat"
+URL="134.175.50.184:8686/monitor/collect"
+HOSTSURL="134.175.50.184:8686/monitor/nat"
 HOST=${HOSTNAME}
 LOGDIR="/tmp"
 LOGFILE="${LOGDIR}/patrol-monitor.log"
-DOWNLOAD_URL="134.175.50.184:8666/shell/monitor"
+DOWNLOAD_URL="134.175.50.184:8686/shell/monitor"
 
 NATINFO=""
 
