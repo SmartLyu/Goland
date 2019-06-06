@@ -95,16 +95,18 @@ func CheckFile(uf UploadFile, file string, bucketManager *storage.BucketManager)
 }
 
 // 判断是否上传后，上传文件
-func ImportFile(uf UploadFile, file string, dir string, upToken string, bucketManager *storage.BucketManager,addname string) error {
+func ImportFile(uf UploadFile, file string, dir string, upToken string, bucketManager *storage.BucketManager, addname string) error {
 
-	tmpString := strings.Split(file, "")
+	tmpString := file
 	if dir != "" {
-		tmpString = strings.Split(file, dir+"/")
+		tmpString = strings.TrimLeft(file, dir+"/")
 	}
 
 	uf.LocalFile = file
-	uf.KeyName = tmpString[1]
+	uf.KeyName = tmpString
 	uf.KeyName = addname + uf.KeyName
+
+	fmt.Println("start to upload " + uf.LocalFile + " to " + uf.KeyName)
 	if uf.KeyName == "" {
 		return errors.New("the dir sets error")
 	}
@@ -126,7 +128,7 @@ func ImportFile(uf UploadFile, file string, dir string, upToken string, bucketMa
 }
 
 // 判断是否在七牛已存在该文件
-func CheckDir(uf UploadFile, file string, dir string, upToken string, bucketManager *storage.BucketManager,addname string) (bool,error) {
+func CheckDir(uf UploadFile, file string, dir string, upToken string, bucketManager *storage.BucketManager, addname string) (bool, error) {
 
 	tmpString := strings.Split(file, "")
 	if dir != "" {
@@ -137,13 +139,13 @@ func CheckDir(uf UploadFile, file string, dir string, upToken string, bucketMana
 	uf.KeyName = tmpString[1]
 	uf.KeyName = addname + uf.KeyName
 	if uf.KeyName == "" {
-		return true,errors.New("the dir sets error")
+		return true, errors.New("the dir sets error")
 	}
 	isUpload, err := CheckFile(uf, file, bucketManager)
 	if err != nil {
-		return true,err
+		return true, err
 	}
 
-	return isUpload,nil
+	return isUpload, nil
 
 }

@@ -3,6 +3,7 @@ package Global
 import "encoding/json"
 
 type MonitorJson struct {
+	Time     string `json:"Time"`
 	IP       string `json:"IP"`
 	Hostname string `json:"Hostname"`
 	Info     string `json:"Info"`

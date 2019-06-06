@@ -32,7 +32,7 @@ func NewRouter() *mux.Router {
 }
 
 var routes = Routes{
-	// 获取指定日期的监控信息，格式   url?time=年.月.日&key=关机子
+	// 获取指定日期的监控信息，格式   url?time=年.月.日&key=关键字
 	Route{
 		"GetInfo",
 		"GET",
@@ -48,9 +48,9 @@ var routes = Routes{
 		PostMonitorInfo,
 	},
 
-	// 收集nat机器中记录的host信息
+	// 收集nat机器中记录的hosts信息
 	Route{
-		"MonitorCollect",
+		"MonitorNatInfo",
 		"POST",
 		"/monitor/nat",
 		PostNatInfo,
@@ -66,7 +66,7 @@ var routes = Routes{
 
 	// 修改nat机器
 	Route{
-		"AddNat",
+		"UpdateNat",
 		"POST",
 		"/admin/updata",
 		UpdataNatMonitor,
@@ -74,7 +74,7 @@ var routes = Routes{
 
 	// 删除nat机器
 	Route{
-		"AddNat",
+		"DeleteNat",
 		"POST",
 		"/admin/del",
 		DeleteNatMonitor,
@@ -82,7 +82,7 @@ var routes = Routes{
 
 	// 获取所有nat机器信息
 	Route{
-		"AddNat",
+		"SelectNat",
 		"GET",
 		"/admin/select",
 		SelectNatMonitor,
@@ -90,7 +90,7 @@ var routes = Routes{
 
 	// 重新读取crontab信息
 	Route{
-		"AddNat",
+		"RestartCrontab",
 		"POST",
 		"/crontab/reload",
 		ReloadCrontabNat,
@@ -106,7 +106,7 @@ var routes = Routes{
 
 	// 控制coco机器监控所有nat机器
 	Route{
-		"MonitorNat",
+		"MonitorAllNat",
 		"POST",
 		"/monitor/all",
 		ReturnAllNatMonitor,

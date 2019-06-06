@@ -13,7 +13,7 @@ import (
 	"strings"
 )
 
-var installUrl = "http://139.159.233.66:8888/download/FalconAgent.tar.gz"
+var installUrl = "http://139.159.233.66:8888/download/falcon-agent.tar.gz"
 var falconDir = "/work/servers/FalconAgent"
 
 // 获取变量值

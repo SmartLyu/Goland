@@ -1,15 +1,14 @@
-package File
+package CallPolice
 
 import (
 	"../Global"
-	"../CallPolice"
 	"errors"
 	"log"
 	"os"
 	"time"
 )
 
-// 写入日志信息
+// 报警系统转悠写入日志信息
 func WriteLog(message string, datadir string, logfile string) {
 
 	// 判断目录是否存在，不存在需要创建
@@ -48,16 +47,11 @@ func WriteLog(message string, datadir string, logfile string) {
 
 func WriteErrorLog(message string) {
 	dir, file := Global.UpdateLog()
-	CallPolice.CallPolice("巡查服务器异常：Error \t"+message)
 	WriteLog("Error\t"+message, dir, file)
 }
+
 
 func WriteInfoLog(message string) {
 	dir, file := Global.UpdateLog()
 	WriteLog("Info\t"+message, dir, file)
-}
-
-func WriteAccessLog(message string) {
-	dir, file := Global.UpdateAcessLog()
-	WriteLog(message, dir, file)
 }

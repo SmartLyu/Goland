@@ -11,12 +11,13 @@ import (
 
 var cs = make(map[string]*cron.Cron)
 
+// 计划任务
 func CrontabToCallCoco(nt Global.NatTable) {
 	cs[nt.IP] = cron.New()
 	spec := "0 */" + strconv.Itoa(nt.Time) + " * * * ?"
 
 	err := cs[nt.IP].AddFunc(spec, func() {
-		CallAllNatMonitor()
+		CallCoco(nt.IP,strconv.Itoa(nt.Port))
 	})
 
 	if err != nil {
@@ -26,12 +27,14 @@ func CrontabToCallCoco(nt Global.NatTable) {
 	select {}
 }
 
+// 开始所有库中nat机器的计划任务
 func StartAllCrontab() {
 	for _, i := range Mysql.SelectAllNatTable() {
 		go CrontabToCallCoco(i)
 	}
 }
 
+// 重新读取数据库中nat机器的计划任务
 func ReStartAllCrontab() {
 	for _, i := range cs {
 		i.Stop()

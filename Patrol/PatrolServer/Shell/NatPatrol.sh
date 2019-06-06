@@ -14,7 +14,7 @@ STEPLENTH='60'
 URL="134.175.50.184:8666/monitor/collect"
 HOSTSURL="134.175.50.184:8666/monitor/nat"
 HOST=${HOSTNAME}
-LOGDIR="/work/logs/openfalcon"
+LOGDIR="/tmp"
 LOGFILE="${LOGDIR}/patrol-monitor.log"
 DOWNLOAD_URL="134.175.50.184:8666/shell/monitor"
 
@@ -38,7 +38,7 @@ PostToApi(){
         \"info\": \"${tag_name}\", \
         \"status\": ${status} \
         }"
-    echo "${ip_info}:${tag_name}  ${status}  " >> ${LOGFILE}
+    echo "${ip_info}:${tag_name}  ${status}  "
     curl -s --connect-timeout ${TIMEOUT} -X POST -d "${data}" $URL
     echo
 }
@@ -54,7 +54,7 @@ PostHostsToApi(){
     data="{ \
         \"IP\": \"${ip_info}\" \
         }"
-    echo "post ${ip_info}  " >> ${LOGFILE}
+    echo "post ${ip_info}  "
     curl -s --connect-timeout ${TIMEOUT} -X POST -d "${data}" $HOSTSURL
     echo
 }
@@ -71,31 +71,90 @@ MyError(){
 
 # 简单测试环境并完成初始化
 Init(){
-
     if [[ s${NATINFO} == "s" ]] ;then
          MyError 1
     fi
-    id ${USER} && mkdir -p ${LOGDIR}
     if [[ $? -ne 0 ]];then
         echo you have to init enviroment!
         MyError 2
     fi
     touch ${LOGFILE}
-
 }
 
 # 遍历hosts进行监控
 Monitor(){
     local all_ip
+    local special_tag
     all_ip=$(awk '{print $1}' /etc/hosts | grep -v ^# |  grep -v ^$ | grep -E ^\(10\)\\..*\|\(172\)\\..*\|\(192\)\\..*)
 
     for i in ${all_ip}
     do
-        PostHostsToApi $i
-        ssh $i "wget "${DOWNLOAD_URL}" --timeout 10 -O /tmp/patrol-tmp.sh; \
-               /bin/bash /tmp/patrol-tmp.sh --nat "${NATINFO}" --ip "${i}" -f;\
-               rm -f /tmp/patrol-tmp.sh" &
+        echo $i
+        {
+            # 检查集群身份
+            special_tag=""
+
+            # nginx服务器
+            grep $i /etc/hosts | grep PATROL_IGNORE
+            if [[ $? -eq 0 ]];then
+                special_tag=${special_tag}"f"
+            fi
+
+            # nginx服务器
+            grep $i /etc/hosts | grep PATROL_NGINX
+            if [[ $? -eq 0 ]];then
+                special_tag=${special_tag}"x"
+            fi
+
+            # mysql数据库(非从库)
+            grep $i /etc/hosts | grep PATROL_MYSQL
+            if [[ $? -eq 0 ]];then
+                special_tag=${special_tag}"m"
+            fi
+
+            # mysql数据库(从库)
+            grep $i /etc/hosts | grep PATROL_MYSQL_SLAVE
+            if [[ $? -eq 0 ]];then
+                special_tag=${special_tag}"s"
+            fi
+
+             echo $i "/bin/bash /tmp/patrol-tmp.sh --nat "${NATINFO}" --ip "${i}" -af"${special_tag}
+             # 告知巡查机本次检查后端机器信息
+             PostHostsToApi $i
+
+             # 控制后端机器进行下载监控脚本并执行
+             ssh $i "wget "${DOWNLOAD_URL}" --timeout 10 -O /tmp/patrol-tmp.sh; \
+             /bin/bash /tmp/patrol-tmp.sh --nat "${NATINFO}" --ip "${i}" -a"${special_tag}";\
+             rm -f /tmp/patrol-tmp.sh"
+        } &
     done
+}
+
+# 检查其集群身份
+# 参数1 ： 后端服务器ip
+IdentifyCheck(){
+    local special_tag
+    special_tag=""
+
+    # nginx服务器
+    grep $i /etc/hosts | grep PATROL_NGINX
+    if [[ $? -eq 0 ]];then
+        special_tag=${special_tag}"x"
+    fi
+
+    # mysql数据库(非从库)
+    grep $i /etc/hosts | grep PATROL_MYSQL
+    if [[ $? -eq 0 ]];then
+        special_tag=${special_tag}"m"
+    fi
+
+    # mysql数据库(从库)
+    grep $i /etc/hosts | grep PATROL_MYSQL_SLAVE
+    if [[ $? -eq 0 ]];then
+        special_tag=${special_tag}"s"
+    fi
+
+    return special_tag
 }
 
 Main(){
@@ -150,4 +209,4 @@ USAGE:$0 [OPTIONS] [work_password]
 EOF
 }
 
-Main $@ &
+Main $@ &>${LOGFILE} &

@@ -11,7 +11,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -45,8 +44,8 @@ func PostMonitorInfo(w http.ResponseWriter, r *http.Request) {
 	}
 	CallPolice.Judge(jsonfile)
 
-	hostjson.IP=jsonfile.IP
-	hostjson.Time=time.Now().Format("2006-01-02 15:04:05")
+	hostjson.IP = jsonfile.IP
+	hostjson.Time = time.Now().Format("2006-01-02 15:04:05")
 	Mysql.DeleteHosts(hostjson)
 
 	// 返回信息
@@ -80,7 +79,7 @@ func PostNatInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 添加数据
-	jsonfile.Time=time.Now().Format("2006-01-02 15:04:05")
+	jsonfile.Time = time.Now().Format("2006-01-02 15:04:05")
 	Mysql.InsertHosts(jsonfile)
 
 	// 返回信息
@@ -94,6 +93,10 @@ func PostNatInfo(w http.ResponseWriter, r *http.Request) {
 // 展示监控信息
 func ReturnMonitorInfo(w http.ResponseWriter, r *http.Request) {
 
+	w.Header().Set("Access-Control-Allow-Origin", "*")             //允许访问所有域
+	w.Header().Add("Access-Control-Allow-Headers", "Content-Type") //header的类型
+	w.Header().Set("content-type", "application/json")             //返回数据格式是json
+
 	//解析参数，默认是不会解析的
 	err := r.ParseForm()
 	if err != nil {
@@ -106,12 +109,14 @@ func ReturnMonitorInfo(w http.ResponseWriter, r *http.Request) {
 	getTime := r.Form.Get("time")
 	getTimeTmp := strings.Split(getTime, ".")
 	if len(getTimeTmp) != 3 {
-		File.WriteErrorLog("Time stye Error")
+		File.WriteErrorLog("Get Monitor Info ,But Time stye Error")
 		http.NotFoundHandler().ServeHTTP(w, r)
 	}
 	des := pwd + getTimeTmp[0] + "-" + getTimeTmp[1] + string(os.PathSeparator) + getTimeTmp[2] + Global.DataFileName
 
-	getKey := r.Form.Get("key")
+	getKey1 := r.Form.Get("key1")
+	getKey2 := r.Form.Get("key2")
+	getKey3 := r.Form.Get("key3")
 
 	// 读取监控存储的文件
 	desStat, err := os.Stat(des)
@@ -122,23 +127,24 @@ func ReturnMonitorInfo(w http.ResponseWriter, r *http.Request) {
 		File.WriteErrorLog("File Is Dir" + des)
 		http.NotFoundHandler().ServeHTTP(w, r)
 	} else {
+		_, _ = w.Write([]byte("["))
 		// 根据用户是否有检索需求不同处理
-		if getKey == "" {
+		if getKey1 == "" {
 			fileData, err := ioutil.ReadFile(des)
 			if err != nil {
-				File.WriteErrorLog("Read File Err:" + err.Error())
+				File.WriteErrorLog("Read File Err: " + err.Error())
 				http.NotFoundHandler().ServeHTTP(w, r)
 			} else {
 				File.WriteInfoLog("Send File:" + des)
 				_, err = w.Write(fileData)
 				if err != nil {
-					File.WriteErrorLog("http writed Err" + err.Error())
+					File.WriteErrorLog("http writed Err " + err.Error())
 				}
 			}
 		} else {
-			data, err := File.FindWorkInFile(des, getKey)
+			data, err := File.FindWorkInFile(des, getKey1, getKey2, getKey3)
 			if err != nil {
-				File.WriteErrorLog("Find ket Err" + err.Error())
+				File.WriteInfoLog("Find key Err " + err.Error())
 				http.NotFoundHandler().ServeHTTP(w, r)
 			} else {
 				File.WriteInfoLog("Send File:" + des)
@@ -148,11 +154,19 @@ func ReturnMonitorInfo(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		}
+		_, _ = w.Write([]byte("\n{\"Time\":\""+time.Now().Format("2006-01-02 15:04")+
+			"\",\"IP\":\"127.0.0.1\", \"Hostname\":\"JJH-Api-QCloudGZ3-Patrol\"," +
+			" \"Info\":\"patrol\", \"Status\":true}]"))
 	}
 }
 
 // 添加nat信息进入数据库
 func AddNatMonitor(w http.ResponseWriter, r *http.Request) {
+
+	w.Header().Set("Access-Control-Allow-Origin", "*")             //允许访问所有域
+	w.Header().Add("Access-Control-Allow-Headers", "Content-Type") //header的类型
+	w.Header().Set("content-type", "application/json")             //返回数据格式是json
+
 	var jsonfile Global.NatTable
 
 	// 读取用户post的信息
@@ -192,6 +206,11 @@ func AddNatMonitor(w http.ResponseWriter, r *http.Request) {
 
 // 删除nat信息进入数据库
 func DeleteNatMonitor(w http.ResponseWriter, r *http.Request) {
+
+	w.Header().Set("Access-Control-Allow-Origin", "*")             //允许访问所有域
+	w.Header().Add("Access-Control-Allow-Headers", "Content-Type") //header的类型
+	w.Header().Set("content-type", "application/json")             //返回数据格式是json
+
 	var jsonfile Global.NatTable
 
 	// 读取用户post的信息
@@ -231,6 +250,11 @@ func DeleteNatMonitor(w http.ResponseWriter, r *http.Request) {
 
 // 修改nat信息进入数据库
 func UpdataNatMonitor(w http.ResponseWriter, r *http.Request) {
+
+	w.Header().Set("Access-Control-Allow-Origin", "*")             //允许访问所有域
+	w.Header().Add("Access-Control-Allow-Headers", "Content-Type") //header的类型
+	w.Header().Set("content-type", "application/json")             //返回数据格式是json
+
 	var jsonfile Global.NatTable
 
 	// 读取用户post的信息
@@ -277,6 +301,10 @@ func UpdataNatMonitor(w http.ResponseWriter, r *http.Request) {
 
 // 显示nat信息
 func SelectNatMonitor(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")             //允许访问所有域
+	w.Header().Add("Access-Control-Allow-Headers", "Content-Type") //header的类型
+	w.Header().Set("content-type", "application/json")             //返回数据格式是json
+
 	jsonfile := Mysql.SelectAllNatTable()
 
 	// 返回信息
@@ -289,6 +317,11 @@ func SelectNatMonitor(w http.ResponseWriter, r *http.Request) {
 
 // 重新启动crontab项目
 func ReloadCrontabNat(w http.ResponseWriter, r *http.Request) {
+
+	w.Header().Set("Access-Control-Allow-Origin", "*")             //允许访问所有域
+	w.Header().Add("Access-Control-Allow-Headers", "Content-Type") //header的类型
+	w.Header().Set("content-type", "application/json")             //返回数据格式是json
+
 	jsonfile := Mysql.SelectAllNatTable()
 	CallCoco.ReStartAllCrontab()
 
@@ -311,7 +344,7 @@ func ReturnMonitorShell(w http.ResponseWriter, r *http.Request) {
 	des := Global.MonitorShellFile
 	desStat, err := os.Stat(des)
 	if err != nil {
-		File.WriteErrorLog("File Not Exit" + des)
+		File.WriteErrorLog("File Not Exit " + des)
 		http.NotFoundHandler().ServeHTTP(w, r)
 	} else if (desStat.IsDir()) {
 		File.WriteErrorLog("File Is Dir" + des)
@@ -319,12 +352,12 @@ func ReturnMonitorShell(w http.ResponseWriter, r *http.Request) {
 	} else {
 		data, err := ioutil.ReadFile(des)
 		if err != nil {
-			File.WriteErrorLog("Read File Err:" + err.Error())
+			File.WriteErrorLog("Read File Err: " + err.Error())
 		} else {
 			File.WriteInfoLog("Send File:" + des)
 			_, err = w.Write([]byte(data))
 			if err != nil {
-				File.WriteErrorLog("http writed Err" + err.Error())
+				File.WriteErrorLog("http writed Err " + err.Error())
 			}
 		}
 	}
@@ -341,7 +374,7 @@ func ReturnNatShell(w http.ResponseWriter, r *http.Request) {
 	des := Global.NatShellFile
 	desStat, err := os.Stat(des)
 	if err != nil {
-		File.WriteErrorLog("File Not Exit" + des)
+		File.WriteErrorLog("File Not Exit " + des)
 		http.NotFoundHandler().ServeHTTP(w, r)
 	} else if (desStat.IsDir()) {
 		File.WriteErrorLog("File Is Dir" + des)
@@ -349,12 +382,12 @@ func ReturnNatShell(w http.ResponseWriter, r *http.Request) {
 	} else {
 		data, err := ioutil.ReadFile(des)
 		if err != nil {
-			File.WriteErrorLog("Read File Err:" + err.Error())
+			File.WriteErrorLog("Read File Err: " + err.Error())
 		} else {
-			File.WriteInfoLog("Send File:" + des)
+			File.WriteInfoLog("Send File: " + des)
 			_, err = w.Write([]byte(data))
 			if err != nil {
-				File.WriteErrorLog("http writed Err" + err.Error())
+				File.WriteErrorLog("http writed Err " + err.Error())
 			}
 		}
 	}
@@ -362,10 +395,15 @@ func ReturnNatShell(w http.ResponseWriter, r *http.Request) {
 
 // 监控所有nat机器
 func ReturnAllNatMonitor(w http.ResponseWriter, r *http.Request) {
+
+	w.Header().Set("Access-Control-Allow-Origin", "*")             //允许访问所有域
+	w.Header().Add("Access-Control-Allow-Headers", "Content-Type") //header的类型
+	w.Header().Set("content-type", "application/json")             //返回数据格式是json
+
 	//解析参数，默认是不会解析的
 	err := r.ParseForm()
 	if err != nil {
-		File.WriteErrorLog("Recv:" + r.RemoteAddr)
+		File.WriteErrorLog("Recv: " + r.RemoteAddr)
 	}
 
 	nowTime := time.Now()
@@ -373,11 +411,10 @@ func ReturnAllNatMonitor(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	time.Sleep(2 * time.Second)
-	_, _ = w.Write([]byte("！返回信息并不全面"))
+	_, _ = w.Write([]byte("[{ \"readme\":\"！返回信息并不全面\"},"))
 	// 获取当前日期时间信息
 	pwd := Global.DataFileDir
-	des := pwd + time.Now().Format("2006-01") +
-		string(os.PathSeparator) + strconv.Itoa(time.Now().Day()) + Global.DataFileName
+	des := pwd + time.Now().Format("2006-01/02") + Global.DataFileName
 
 	// 根据当前时间作为关键字检索文件
 	key := nowTime.Format("2006-01-02 15:04:05")
@@ -391,29 +428,42 @@ func ReturnAllNatMonitor(w http.ResponseWriter, r *http.Request) {
 			key := nowTime.Add(2 * time.Second).Format("2006-01-02 15:04:05")
 			data, err := File.FindWorkInFile(des, key)
 			if err != nil {
-				File.WriteErrorLog("Find key Err:" + key + err.Error())
+				File.WriteErrorLog("Find key Err: " + key + err.Error())
 				http.NotFoundHandler().ServeHTTP(w, r)
 			} else {
 				File.WriteInfoLog("Send File:" + des)
 				_, err = w.Write([]byte(data))
+				_, _ = w.Write([]byte("\n{\"readme\": \"已向所有后端机器发出监控请求，查看监控信息请 Get URL: " +
+					" http://134.175.50.184:8666/monitor/info?" +
+					"time=" + time.Now().Format("2006.01.02") + "&key=" +
+					nowTime.Format("2006-01-02 15:04") + "\"}]"))
 				if err != nil {
-					File.WriteErrorLog("http writed Err" + err.Error())
+					File.WriteErrorLog("http writed Err " + err.Error())
 				}
 			}
 		} else {
 			File.WriteInfoLog("Send File:" + des)
 			_, err = w.Write([]byte(data))
+			_, _ = w.Write([]byte("\n{\"readme\": \"已向所有后端机器发出监控请求，查看监控信息请 Get URL: " +
+				" http://134.175.50.184:8666/monitor/info?" +
+				"time=" + time.Now().Format("2006.01.02") + "&key=" +
+				nowTime.Format("2006-01-02 15:04") + "\"}]"))
 			if err != nil {
-				File.WriteErrorLog("http writed Err" + err.Error())
+				File.WriteErrorLog("http writed Err " + err.Error())
 			}
 		}
 	} else {
 		File.WriteInfoLog("Send File:" + des)
 		_, err = w.Write([]byte(data))
+		_, _ = w.Write([]byte("\n{\"readme\": \"已向所有后端机器发出监控请求，查看监控信息请 Get URL: " +
+			" http://134.175.50.184:8666/monitor/info?" +
+			"time=" + time.Now().Format("2006.01.02") + "&key=" +
+			nowTime.Format("2006-01-02 15:04") + "\"}]"))
 		if err != nil {
-			File.WriteErrorLog("http writed Err" + err.Error())
+			File.WriteErrorLog("http writed Err " + err.Error())
 		}
 	}
+	w.WriteHeader(http.StatusOK)
 }
 
 // 主动控制监控某个nat
@@ -422,7 +472,7 @@ func ReturnNatMonitor(w http.ResponseWriter, r *http.Request) {
 	//解析参数，默认是不会解析的
 	err := r.ParseForm()
 	if err != nil {
-		File.WriteErrorLog("Recv:" + r.RemoteAddr)
+		File.WriteErrorLog("Recv: " + r.RemoteAddr)
 	}
 
 	// 读取用户输入的参数信息
@@ -436,8 +486,7 @@ func ReturnNatMonitor(w http.ResponseWriter, r *http.Request) {
 	time.Sleep(2 * time.Second)
 	// 获取当前时间信息
 	pwd := Global.DataFileDir
-	des := pwd + time.Now().Format("2006-01") +
-		string(os.PathSeparator) + strconv.Itoa(time.Now().Day()) + Global.DataFileName
+	des := pwd + time.Now().Format("2006-01/02") + Global.DataFileName
 
 	// 根据当前时间作为关键字检索文件
 	key := nowTime.Format("2006-01-02 15:04:05") + "\t{\"IP\":\"" + getNat
@@ -445,33 +494,45 @@ func ReturnNatMonitor(w http.ResponseWriter, r *http.Request) {
 
 	// 检查最近三秒的数据并返回
 	if err != nil {
-		key := nowTime.Add(time.Second).Format("2006-01-02 15:04:05") + "\t{\"IP\":\"" + getNat
+		key := nowTime.Add(time.Second).Format("2006-01-02 15:04:05")
 		data, err := File.FindWorkInFile(des, key)
 		if err != nil {
-			key := nowTime.Add(2 * time.Second).Format("2006-01-02 15:04:05") + "\t{\"IP\":\"" + getNat
+			key := nowTime.Add(2 * time.Second).Format("2006-01-02 15:04:05")
 			data, err := File.FindWorkInFile(des, key)
 			if err != nil {
-				File.WriteErrorLog("Find key Err:" + key + err.Error())
+				File.WriteErrorLog("Find key Err: " + key + err.Error())
 				http.NotFoundHandler().ServeHTTP(w, r)
 			} else {
 				File.WriteInfoLog("Send File:" + des)
 				_, err = w.Write([]byte(data))
+				_, _ = w.Write([]byte("\n已向所有后端机器发出监控请求，查看监控信息请 Get URL:" +
+					" http://134.175.50.184:8666/monitor/info?" +
+					"time=" + time.Now().Format("2006.01.02") + "&key=" +
+					nowTime.Format("2006-01-02 15:04")))
 				if err != nil {
-					File.WriteErrorLog("http writed Err" + err.Error())
+					File.WriteErrorLog("http writed Err " + err.Error())
 				}
 			}
 		} else {
 			File.WriteInfoLog("Send File:" + des)
 			_, err = w.Write([]byte(data))
+			_, _ = w.Write([]byte("\n已向所有后端机器发出监控请求，查看监控信息请 Get URL:" +
+				" http://134.175.50.184:8666/monitor/info?" +
+				"time=" + time.Now().Format("2006.01.02") + "&key=" +
+				nowTime.Format("2006-01-02 15:04")))
 			if err != nil {
-				File.WriteErrorLog("http writed Err" + err.Error())
+				File.WriteErrorLog("http writed Err " + err.Error())
 			}
 		}
 	} else {
 		File.WriteInfoLog("Send File:" + des)
 		_, err = w.Write([]byte(data))
+		_, _ = w.Write([]byte("\n已向所有后端机器发出监控请求，查看监控信息请 Get URL:" +
+			" http://134.175.50.184:8666/monitor/info?" +
+			"time=" + time.Now().Format("2006.01.02") + "&key=" +
+			nowTime.Format("2006-01-02 15:04")))
 		if err != nil {
-			File.WriteErrorLog("http writed Err" + err.Error())
+			File.WriteErrorLog("http writed Err " + err.Error())
 		}
 	}
 }
