@@ -5,8 +5,10 @@ import (
 	"../File"
 	"../Global"
 	"../Mysql"
+	"encoding/json"
 	"github.com/robfig/cron"
 	"strconv"
+	"time"
 )
 
 var cs = make(map[string]*cron.Cron)
@@ -17,7 +19,7 @@ func CrontabToCallCoco(nt Global.NatTable) {
 	spec := "0 */" + strconv.Itoa(nt.Time) + " * * * ?"
 
 	err := cs[nt.IP].AddFunc(spec, func() {
-		CallCoco(nt.IP,strconv.Itoa(nt.Port))
+		CallCoco(nt.IP, strconv.Itoa(nt.Port))
 	})
 
 	if err != nil {
@@ -49,6 +51,7 @@ func StopCrontab(nt Global.NatTable) {
 }
 
 func CrontabToCheckHosts() {
+	var jsonfile Global.MonitorJson
 	c := cron.New()
 	spec := "50 * * * * ?"
 
@@ -57,6 +60,16 @@ func CrontabToCheckHosts() {
 		for _, i := range ht {
 			Mysql.DeleteHosts(i)
 			CallPolice.CallPolice(i.IP + "\n has not return status")
+			if err := json.Unmarshal([]byte("\n{\"Time\":\""+time.Now().Format("2006-01-02 15:04")+
+				"\",\"IP\":\""+i.IP+"\", \"Hostname\":\"Unknown-Error\","+
+				" \"Info\":\"patrol\", \"Status\":false}"), &jsonfile); err != nil {
+				File.WriteErrorLog(err.Error())
+			}
+
+			// 添加数据
+			if err := File.WriteFile(Global.ReadJson(jsonfile)); err != nil {
+				File.WriteErrorLog(err.Error())
+			}
 		}
 	})
 

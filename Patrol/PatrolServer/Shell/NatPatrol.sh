@@ -94,7 +94,13 @@ Monitor(){
             # 检查集群身份
             special_tag=""
 
-            # nginx服务器
+            # 不属于集群服务器
+            grep $i /etc/hosts | grep PATROL_PASS
+            if [[ $? -eq 0 ]];then
+                continue
+            fi
+
+            # 不具体检查服务器
             grep $i /etc/hosts | grep PATROL_IGNORE
             if [[ $? -eq 0 ]];then
                 special_tag=${special_tag}"f"
@@ -128,33 +134,6 @@ Monitor(){
              rm -f /tmp/patrol-tmp.sh"
         } &
     done
-}
-
-# 检查其集群身份
-# 参数1 ： 后端服务器ip
-IdentifyCheck(){
-    local special_tag
-    special_tag=""
-
-    # nginx服务器
-    grep $i /etc/hosts | grep PATROL_NGINX
-    if [[ $? -eq 0 ]];then
-        special_tag=${special_tag}"x"
-    fi
-
-    # mysql数据库(非从库)
-    grep $i /etc/hosts | grep PATROL_MYSQL
-    if [[ $? -eq 0 ]];then
-        special_tag=${special_tag}"m"
-    fi
-
-    # mysql数据库(从库)
-    grep $i /etc/hosts | grep PATROL_MYSQL_SLAVE
-    if [[ $? -eq 0 ]];then
-        special_tag=${special_tag}"s"
-    fi
-
-    return special_tag
 }
 
 Main(){

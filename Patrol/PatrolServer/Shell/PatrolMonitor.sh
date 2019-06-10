@@ -15,7 +15,7 @@ URL="134.175.50.184:8686/monitor/collect"
 HOST=${HOSTNAME}
 LOGDIR="/work/logs/openfalcon"
 LOGFILE="${LOGDIR}/patrol-monitor.log"
-DATE=$(date "+%Y-%m-%d %H:%M:%S")
+DATE=$(date "+%Y-%m-%d %H:%M")
 
 #设置报警阈值
 POLICE=90
@@ -288,6 +288,9 @@ Main(){
                 ;;
     esac
     done
+
+    # 错开巡查机器上传数据的时间
+    sleep $[RANDOM%3].$[RANDOM%100]
 
     # 获取基本参数后，开始监控模块
     Init

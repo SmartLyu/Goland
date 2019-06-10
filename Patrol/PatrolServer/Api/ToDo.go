@@ -155,7 +155,7 @@ func ReturnMonitorInfo(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		_, _ = w.Write([]byte("\n{\"Time\":\""+time.Now().Format("2006-01-02 15:04")+
-			"\",\"IP\":\"127.0.0.1\", \"Hostname\":\"JJH-Api-QCloudGZ3-Patrol\"," +
+			"\",\"IP\":\"127.0.0.1\", \"Hostname\":\"JH-Api-QCloudGZ3-Patrol\"," +
 			" \"Info\":\"patrol\", \"Status\":true}]"))
 	}
 }
