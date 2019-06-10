@@ -18,7 +18,7 @@ type QiNiu struct {
 func main() {
 	var qn QiNiu
 	var style string
-	flag.StringVar(&qn.url, "bucket", "error", "输入cdn的url")
+	flag.StringVar(&qn.url, "url", "error", "输入cdn的url")
 	flag.StringVar(&qn.accessKey, "accessKey", "***", "输入传输账户accesskey")
 	flag.StringVar(&qn.secretKey, "secretKey", "***", "输入传输账户secretKey")
 	flag.StringVar(&qn.keyfile, "keyfile", "error", "输入传输后在文件头")
