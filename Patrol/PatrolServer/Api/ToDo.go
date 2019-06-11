@@ -45,7 +45,7 @@ func PostMonitorInfo(w http.ResponseWriter, r *http.Request) {
 	CallPolice.Judge(jsonfile)
 
 	hostjson.IP = jsonfile.IP
-	hostjson.Time = time.Now().Format("2006-01-02 15:04:05")
+	hostjson.Time = time.Now().Format("2006-01-02 15:04")
 	Mysql.DeleteHosts(hostjson)
 
 	// 返回信息
@@ -79,7 +79,7 @@ func PostNatInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 添加数据
-	jsonfile.Time = time.Now().Format("2006-01-02 15:04:05")
+	jsonfile.Time = time.Now().Format("2006-01-02 15:04")
 	Mysql.InsertHosts(jsonfile)
 
 	// 返回信息
@@ -410,48 +410,20 @@ func ReturnAllNatMonitor(w http.ResponseWriter, r *http.Request) {
 	CallCoco.CallAllNatMonitor()
 	w.WriteHeader(http.StatusOK)
 
-	time.Sleep(2 * time.Second)
+	time.Sleep(1 * time.Second)
 	_, _ = w.Write([]byte("[{ \"readme\":\"！返回信息并不全面\"},"))
 	// 获取当前日期时间信息
 	pwd := Global.DataFileDir
 	des := pwd + time.Now().Format("2006-01/02") + Global.DataFileName
 
 	// 根据当前时间作为关键字检索文件
-	key := nowTime.Format("2006-01-02 15:04:05")
+	key := nowTime.Format("2006-01-02 15:04")
 	data, err := File.FindWorkInFile(des, key)
 
 	// 检查最近三秒的数据并返回
 	if err != nil {
-		key := nowTime.Add(time.Second).Format("2006-01-02 15:04:05")
-		data, err := File.FindWorkInFile(des, key)
-		if err != nil {
-			key := nowTime.Add(2 * time.Second).Format("2006-01-02 15:04:05")
-			data, err := File.FindWorkInFile(des, key)
-			if err != nil {
-				File.WriteErrorLog("Find key Err: " + key + err.Error())
-				http.NotFoundHandler().ServeHTTP(w, r)
-			} else {
-				File.WriteInfoLog("Send File:" + des)
-				_, err = w.Write([]byte(data))
-				_, _ = w.Write([]byte("\n{\"readme\": \"已向所有后端机器发出监控请求，查看监控信息请 Get URL: " +
-					" http://134.175.50.184:8666/monitor/info?" +
-					"time=" + time.Now().Format("2006.01.02") + "&key=" +
-					nowTime.Format("2006-01-02 15:04") + "\"}]"))
-				if err != nil {
-					File.WriteErrorLog("http writed Err " + err.Error())
-				}
-			}
-		} else {
-			File.WriteInfoLog("Send File:" + des)
-			_, err = w.Write([]byte(data))
-			_, _ = w.Write([]byte("\n{\"readme\": \"已向所有后端机器发出监控请求，查看监控信息请 Get URL: " +
-				" http://134.175.50.184:8666/monitor/info?" +
-				"time=" + time.Now().Format("2006.01.02") + "&key=" +
-				nowTime.Format("2006-01-02 15:04") + "\"}]"))
-			if err != nil {
-				File.WriteErrorLog("http writed Err " + err.Error())
-			}
-		}
+		File.WriteErrorLog("Find key Err: " + key + err.Error())
+		http.NotFoundHandler().ServeHTTP(w, r)
 	} else {
 		File.WriteInfoLog("Send File:" + des)
 		_, err = w.Write([]byte(data))
@@ -489,48 +461,20 @@ func ReturnNatMonitor(w http.ResponseWriter, r *http.Request) {
 	des := pwd + time.Now().Format("2006-01/02") + Global.DataFileName
 
 	// 根据当前时间作为关键字检索文件
-	key := nowTime.Format("2006-01-02 15:04:05") + "\t{\"IP\":\"" + getNat
+	key := nowTime.Format("2006-01-02 15:04")
 	data, err := File.FindWorkInFile(des, key)
 
 	// 检查最近三秒的数据并返回
 	if err != nil {
-		key := nowTime.Add(time.Second).Format("2006-01-02 15:04:05")
-		data, err := File.FindWorkInFile(des, key)
-		if err != nil {
-			key := nowTime.Add(2 * time.Second).Format("2006-01-02 15:04:05")
-			data, err := File.FindWorkInFile(des, key)
-			if err != nil {
-				File.WriteErrorLog("Find key Err: " + key + err.Error())
-				http.NotFoundHandler().ServeHTTP(w, r)
-			} else {
-				File.WriteInfoLog("Send File:" + des)
-				_, err = w.Write([]byte(data))
-				_, _ = w.Write([]byte("\n已向所有后端机器发出监控请求，查看监控信息请 Get URL:" +
-					" http://134.175.50.184:8666/monitor/info?" +
-					"time=" + time.Now().Format("2006.01.02") + "&key=" +
-					nowTime.Format("2006-01-02 15:04")))
-				if err != nil {
-					File.WriteErrorLog("http writed Err " + err.Error())
-				}
-			}
-		} else {
-			File.WriteInfoLog("Send File:" + des)
-			_, err = w.Write([]byte(data))
-			_, _ = w.Write([]byte("\n已向所有后端机器发出监控请求，查看监控信息请 Get URL:" +
-				" http://134.175.50.184:8666/monitor/info?" +
-				"time=" + time.Now().Format("2006.01.02") + "&key=" +
-				nowTime.Format("2006-01-02 15:04")))
-			if err != nil {
-				File.WriteErrorLog("http writed Err " + err.Error())
-			}
-		}
+		File.WriteErrorLog("Find key Err: " + key + err.Error())
+		http.NotFoundHandler().ServeHTTP(w, r)
 	} else {
 		File.WriteInfoLog("Send File:" + des)
 		_, err = w.Write([]byte(data))
-		_, _ = w.Write([]byte("\n已向所有后端机器发出监控请求，查看监控信息请 Get URL:" +
+		_, _ = w.Write([]byte("\n{\"readme\": \"已向所有后端机器发出监控请求，查看监控信息请 Get URL: " +
 			" http://134.175.50.184:8666/monitor/info?" +
 			"time=" + time.Now().Format("2006.01.02") + "&key=" +
-			nowTime.Format("2006-01-02 15:04")))
+			nowTime.Format("2006-01-02 15:04") + "\"}]"))
 		if err != nil {
 			File.WriteErrorLog("http writed Err " + err.Error())
 		}

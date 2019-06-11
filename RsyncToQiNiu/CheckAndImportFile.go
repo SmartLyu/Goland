@@ -99,7 +99,7 @@ func ImportFile(uf UploadFile, file string, dir string, upToken string, bucketMa
 
 	tmpString := file
 	if dir != "" {
-		tmpString = strings.TrimLeft(file, dir+"/")
+		tmpString = strings.TrimPrefix(file, dir+"/")
 	}
 
 	uf.LocalFile = file
@@ -130,13 +130,13 @@ func ImportFile(uf UploadFile, file string, dir string, upToken string, bucketMa
 // 判断是否在七牛已存在该文件
 func CheckDir(uf UploadFile, file string, dir string, upToken string, bucketManager *storage.BucketManager, addname string) (bool, error) {
 
-	tmpString := strings.Split(file, "")
+	tmpString := file
 	if dir != "" {
-		tmpString = strings.Split(file, dir+"/")
+		tmpString = strings.TrimPrefix(file, dir+"/")
 	}
 
 	uf.LocalFile = file
-	uf.KeyName = tmpString[1]
+	uf.KeyName = tmpString
 	uf.KeyName = addname + uf.KeyName
 	if uf.KeyName == "" {
 		return true, errors.New("the dir sets error")

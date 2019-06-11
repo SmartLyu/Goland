@@ -290,7 +290,7 @@ Main(){
     done
 
     # 错开巡查机器上传数据的时间
-    sleep $[RANDOM%3].$[RANDOM%100]
+    sleep $[RANDOM%3].$[RANDOM%999]
 
     # 获取基本参数后，开始监控模块
     Init
