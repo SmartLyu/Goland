@@ -1,8 +1,8 @@
 package main
 
 var SecretId = corpText{
-	corpid:     "ww77f7483dada51439",
-	corpsecret: "_ebRca-EqhFei9OKhR0l2k2--dHFANx-1qfdVnh70Kg",
+	corpid:     "",
+	corpsecret: "",
 	toparty:     "1",
 	agentid:    1000002,
 	content:    "Test Api",
