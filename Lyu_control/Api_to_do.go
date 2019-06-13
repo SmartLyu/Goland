@@ -5,7 +5,6 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"weworkapi_golang-master/wxbizmsgcrypt"
 )
 
@@ -102,33 +101,4 @@ func Control(w http.ResponseWriter, r *http.Request) {
 	// 返回信息
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
-}
-
-func ReturnNatShell(w http.ResponseWriter, r *http.Request) {
-	//解析参数，默认是不会解析的
-	err := r.ParseForm()
-	if err != nil {
-		WriteFile("Error: Recv:" + r.RemoteAddr)
-	}
-
-	des := NatShellFile
-	desStat, err := os.Stat(des)
-	if err != nil {
-		WriteFile("Error: File Not Exit " + des)
-		http.NotFoundHandler().ServeHTTP(w, r)
-	} else if (desStat.IsDir()) {
-		WriteFile("Error: File Is Dir" + des)
-		http.NotFoundHandler().ServeHTTP(w, r)
-	} else {
-		data, err := ioutil.ReadFile(des)
-		if err != nil {
-			WriteFile("Error: Read File Err: " + err.Error())
-		} else {
-			WriteFile("Send File:" + des)
-			_, err = w.Write([]byte(data))
-			if err != nil {
-				WriteFile("Error: http writed Err " + err.Error())
-			}
-		}
-	}
 }

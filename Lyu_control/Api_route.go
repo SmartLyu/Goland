@@ -45,12 +45,6 @@ var routes = Routes{
 		"/shell",
 		Control,
 	},
-	Route{
-		"PostInfo",
-		"POST",
-		"/shell/nat",
-		ReturnNatShell,
-	},
 }
 
 // 记录访问记录

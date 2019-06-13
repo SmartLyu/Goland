@@ -26,34 +26,26 @@ func Logger(inner http.Handler, name string) http.Handler {
 func NewRouter() *mux.Router {
 
 	router := mux.NewRouter().StrictSlash(true)
-	for _, route := range routes {
-		var handler http.Handler
-		handler = route.HandlerFunc
-		handler = Logger(handler, route.Name)
-		router.
-			Methods(route.Method).
-			Path(route.Pattern).
-			Name(route.Name).
-			Handler(handler)
-	}
+	route :=  routes
+	var handler http.Handler
+	handler = route.HandlerFunc
+	handler = Logger(handler, route.Name)
+	router.
+		Methods(route.Method).
+		Path(route.Pattern).
+		Name(route.Name).
+		Handler(handler)
+
 	return router
 }
 
-type Routes []Route
 
-var routes = Routes{
-	Route{
-		"StartMonitor",
-		"Post",
-		"/monitor",
-		SshToNat,
-	},
-	Route{
-		"StartMonitor",
-		"Post",
-		"/control",
-		SshtoDoShell,
-	},
+var routes = Route{
+	"StartMonitor",
+	"Post",
+	"/monitor",
+	SshToNat,
+
 }
 
 func Api(port string) {
