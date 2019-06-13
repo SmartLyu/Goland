@@ -11,14 +11,11 @@ var (
 	LockFile       = "/work/data/control/control.lock" // 检查命令执行情况
 	WaiteTime      = 7                                 // 最大等待时间70s
 	NatShellFile   = "/work/sh/NatShell.sh"            // nat执行的脚本
-	token          = ""                                // 微信token
-	receiverId     = ""                                // 微信企业号
-	encodingAeskey = ""                                // eak
+
 )
 
 var SecretId = corpText{
-	corpid:     "",
-	corpsecret: "",
+
 	touser:     "YuZhiYuan",
 	agentid:    1000002,
 	content:    "Test Api",
