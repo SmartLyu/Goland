@@ -159,3 +159,37 @@ func SshToNat(w http.ResponseWriter, r *http.Request) {
 		WriteLog(err.Error())
 	}
 }
+
+func SshtoDoShell(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		WriteLog("Recv:" + r.RemoteAddr)
+	}
+
+	// 读取用户输入的参数信息
+	getNat := r.Form.Get("nat")
+	getPort , err:= strconv.Atoi(r.Form.Get("port"))
+
+	if getNat == "" || err != nil {
+		w.WriteHeader(http.StatusFailedDependency)
+	}
+
+	err = sshDoShell(getNat, getPort, "wget "+ControlShellDownloadUrl+" --timeout 10 -O /tmp/control-tmp.sh&&"+
+		"/usr/bin/nohup /bin/bash /tmp/control-tmp.sh &&"+
+		"rm -f /tmp/control-tmp.sh")
+	if err != nil {
+		WriteLog("ssh error:" + r.RemoteAddr)
+		body, _, err := httpPostJson("ssh error:", "false")
+		if err != nil {
+			WriteLog("post error:" + r.RemoteAddr)
+		}
+		WriteLog(body)
+	}
+
+	// 返回信息
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusCreated)
+	if err := json.NewEncoder(w).Encode(getNat); err != nil {
+		WriteLog(err.Error())
+	}
+}

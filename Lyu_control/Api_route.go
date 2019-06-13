@@ -1,5 +1,4 @@
 package main
-
 import (
 	"github.com/gorilla/mux"
 	"net/http"
@@ -13,15 +12,7 @@ type Route struct {
 	HandlerFunc http.HandlerFunc
 }
 
-// 记录访问记录
-func Logger(inner http.Handler, name string) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		start := time.Now()
-		inner.ServeHTTP(w, r)
-
-		WriteLog(r.Method + "\t" + r.RequestURI + "\t" + name + "\t" + time.Since(start).String())
-	})
-}
+type Routes []Route
 
 func NewRouter() *mux.Router {
 
@@ -39,24 +30,35 @@ func NewRouter() *mux.Router {
 	return router
 }
 
-type Routes []Route
-
+// 对内全功能接口
 var routes = Routes{
+	// 微信相关接口
 	Route{
-		"StartMonitor",
-		"Post",
-		"/monitor",
-		SshToNat,
+		"GetInfo",
+		"GET",
+		"/shell",
+		Test,
 	},
 	Route{
-		"StartMonitor",
-		"Post",
-		"/control",
-		SshtoDoShell,
+		"PostInfo",
+		"POST",
+		"/shell",
+		Control,
+	},
+	Route{
+		"PostInfo",
+		"POST",
+		"/shell/nat",
+		ReturnNatShell,
 	},
 }
 
-func Api(port string) {
-	router := NewRouter()
-	WriteLog(http.ListenAndServe(":"+port, router).Error())
+// 记录访问记录
+func Logger(inner http.Handler, name string) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		inner.ServeHTTP(w, r)
+
+		WriteFile(r.Method+"\t"+r.RequestURI+"\t"+name+"\t"+time.Since(start).String())
+	})
 }
