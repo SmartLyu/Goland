@@ -12,6 +12,7 @@ var (
 	WaiteTime      = 7                                 // 最大等待时间70s
 	NatShellFile   = "/work/sh/NatShell.sh"            // nat执行的脚本
 
+
 )
 
 var SecretId = corpText{
