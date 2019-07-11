@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -154,7 +155,7 @@ func ReturnMonitorInfo(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		}
-		_, _ = w.Write([]byte("\n{\"Time\":\""+time.Now().Format("2006-01-02 15:04")+
+		_, _ = w.Write([]byte("\n{\"Time\":\"" + time.Now().Format("2006-01-02 15:04") +
 			"\",\"IP\":\"127.0.0.1\", \"Hostname\":\"JH-Api-QCloudGZ3-Patrol\"," +
 			" \"Info\":\"patrol\", \"Status\":true}]"))
 	}
@@ -449,11 +450,11 @@ func ReturnNatMonitor(w http.ResponseWriter, r *http.Request) {
 
 	// 读取用户输入的参数信息
 	getNat := r.Form.Get("nat")
-	getHostname:= r.Form.Get("host")
+	getHostname := r.Form.Get("host")
 	getPort := r.Form.Get("port")
 
 	nowTime := time.Now()
-	CallCoco.CallCoco(getHostname,getNat, getPort)
+	CallCoco.CallCoco(getHostname, getNat, getPort)
 	w.WriteHeader(http.StatusOK)
 
 	time.Sleep(2 * time.Second)
@@ -480,4 +481,45 @@ func ReturnNatMonitor(w http.ResponseWriter, r *http.Request) {
 			File.WriteErrorLog("http writed Err " + err.Error())
 		}
 	}
+}
+
+// 修改是否报警
+func ChangPoliceStatus(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")             //允许访问所有域
+	w.Header().Add("Access-Control-Allow-Headers", "Content-Type") //header的类型
+	w.Header().Set("content-type", "application/json")             //返回数据格式是json
+
+	if Global.IsPolice {
+		CallPolice.CallPolice(time.Now().Format("2006.01.02 15:04") + "\n  现在进入维护模式，暂停报警功能")
+		Global.IsPolice = false
+		go func() {
+			time.Sleep(time.Hour * 6)
+			Global.IsPolice = true
+			CallPolice.CallPolice(time.Now().Format("2006.01.02 15:04") + "\n  现在结束维护功能，开启报警功能")
+		}()
+
+	} else {
+		Global.IsPolice = true
+		CallPolice.CallPolice(time.Now().Format("2006.01.02 15:04") + "\n  现在结束维护功能，开启报警功能")
+	}
+
+	// 返回信息
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusCreated)
+}
+
+// 显示是否报警
+func ReturnPoliceStatus(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")             //允许访问所有域
+	w.Header().Add("Access-Control-Allow-Headers", "Content-Type") //header的类型
+	w.Header().Set("content-type", "application/json")             //返回数据格式是json
+
+	jsonfile := "{\"status\": \"" + strconv.FormatBool(Global.IsPolice) + "\"}"
+
+	// 返回信息
+	if err := json.NewEncoder(w).Encode(jsonfile); err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		File.WriteErrorLog(err.Error())
+	}
+	w.WriteHeader(http.StatusOK)
 }

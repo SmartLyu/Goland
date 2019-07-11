@@ -1,6 +1,7 @@
 package CallPolice
 
 import (
+	"../Global"
 	"bytes"
 	"encoding/json"
 	"errors"
@@ -50,6 +51,9 @@ type sendMsgError struct {
 }
 
 func SendWeiXinMessage(id corpText) error {
+	if ! Global.IsPolice {
+		return nil
+	}
 	corpid := id.corpid
 	corpsecret := id.corpsecret
 

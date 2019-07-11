@@ -142,6 +142,22 @@ var routes = Routes{
 		"/shell/nat",
 		ReturnNatShell,
 	},
+
+	// 修改是否报警的状态
+	Route{
+		"NatShell",
+		"POST",
+		"/police/change",
+		ChangPoliceStatus,
+	},
+
+	// 获取是否报警的状态
+	Route{
+		"NatShell",
+		"GET",
+		"/police/status",
+		ReturnPoliceStatus,
+	},
 }
 
 // 暴露对外的相关模块

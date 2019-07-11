@@ -17,6 +17,7 @@ var (
 	ListenSig        = make(chan int)                 // 监听后台阻塞信号
 	ListenPublicSig  = make(chan int)                 // 监听后台公共端口阻塞信号
 	CocoUrl          = "http://10.4.0.4:8666/monitor" // coco的端口
+	IsPolice         = true                           // 是否报警
 )
 
 // 自动分隔错误日志
