@@ -14,13 +14,13 @@ func InsertNat(nt Global.NatTable) (bool) {
 		return false
 	}
 	//准备sql语句
-	stmt, err := tx.Prepare("INSERT INTO nat_info (`IP`,`port`, `time`) VALUES (?, ?, ?)")
+	stmt, err := tx.Prepare("INSERT INTO nat_info (`IP`,`hostname`,`port`, `time`) VALUES (?, ?, ?, ?)")
 	if err != nil {
 		File.WriteErrorLog("Prepare fail")
 		return false
 	}
 	//将参数传递到sql语句中并且执行
-	_, err = stmt.Exec(nt.IP, nt.Port, nt.Time)
+	_, err = stmt.Exec(nt.IP, nt.HostName, nt.Port, nt.Time)
 	if err != nil {
 		File.WriteErrorLog("Exec fail")
 		return false
@@ -70,7 +70,7 @@ func SelectAllNatTable() ([]Global.NatTable) {
 	for rows.Next() {
 		var nt Global.NatTable
 		//将每一行的结果都赋值到一个user对象中
-		err := rows.Scan(&nt.IP, &nt.Port, &nt.Time)
+		err := rows.Scan(&nt.IP, &nt.HostName, &nt.Port, &nt.Time)
 		if err != nil {
 			File.WriteErrorLog("rows fail")
 		}

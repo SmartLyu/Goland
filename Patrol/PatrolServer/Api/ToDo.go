@@ -449,10 +449,11 @@ func ReturnNatMonitor(w http.ResponseWriter, r *http.Request) {
 
 	// 读取用户输入的参数信息
 	getNat := r.Form.Get("nat")
+	getHostname:= r.Form.Get("host")
 	getPort := r.Form.Get("port")
 
 	nowTime := time.Now()
-	CallCoco.CallCoco(getNat, getPort)
+	CallCoco.CallCoco(getHostname,getNat, getPort)
 	w.WriteHeader(http.StatusOK)
 
 	time.Sleep(2 * time.Second)

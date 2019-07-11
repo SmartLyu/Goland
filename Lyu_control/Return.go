@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func TryReturn(msgContent MsgContent){
+func TryReturn(msgContent MsgContent) {
 
 	var text string
 	if msgContent.MsgType == "text" {
@@ -23,6 +23,7 @@ func TryReturn(msgContent MsgContent){
 
 	justWaite := 1
 	// 检查lock文件
+	time.Sleep(1 * time.Second)
 	for {
 		_, err = os.Stat(LockFile)
 		if err != nil {

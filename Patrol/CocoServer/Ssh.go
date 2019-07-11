@@ -108,18 +108,16 @@ func sshDoShell(ip string, port int, cmd string) error {
 		log.Panic(err)
 	}
 
-	defer func() {
-		_ = session.Close()
-	}()
-
 	session.Stdout = os.Stdout
 	session.Stderr = os.Stderr
 
 	err = session.Run(cmd)
 	if err != nil {
+		_ = session.Close()
 		return errors.New(err.Error())
 	}
 
+	_ = session.Close()
 	return nil
 }
 
@@ -140,8 +138,8 @@ func SshToNat(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusFailedDependency)
 	}
 
-	err = sshDoShell(getNat, getPort, "wget "+NatShellDownloadUrl+" --timeout 10 -O /tmp/patrol-tmp.sh&&"+
-		"/usr/bin/nohup /bin/bash /tmp/patrol-tmp.sh --nat "+getNat+"&&"+
+	err = sshDoShell(getNat, getPort, "wget -q "+NatShellDownloadUrl+" --timeout 10 -O /tmp/patrol-tmp.sh&&"+
+		"/usr/bin/nohup /bin/bash /tmp/patrol-tmp.sh --nat "+getNat+" &> /dev/null &&"+
 		"rm -f /tmp/patrol-tmp.sh")
 	if err != nil {
 		WriteLog("ssh error:" + r.RemoteAddr)

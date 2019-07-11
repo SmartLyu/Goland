@@ -11,9 +11,10 @@ type MonitorJson struct {
 }
 
 type NatTable struct {
-	IP   string `json:"IP"`
-	Port int    `json:"PORT"`
-	Time int    `json:"TIME"`
+	IP       string `json:"IP"`
+	HostName string `json:"HOSTNAME"`
+	Port     int    `json:"PORT"`
+	Time     int    `json:"TIME"`
 }
 
 type HostsTable struct {

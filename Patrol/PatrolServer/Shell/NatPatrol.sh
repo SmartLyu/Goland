@@ -157,7 +157,7 @@ Main(){
                 shift
                 ;;
             -n|--nat)
-                NATINFO=$2
+                NATINFO=$2"-"${HOSTNAME}
                 shift 2
                 ;;
             --)

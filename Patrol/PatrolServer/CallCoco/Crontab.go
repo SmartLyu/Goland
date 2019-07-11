@@ -19,7 +19,7 @@ func CrontabToCallCoco(nt Global.NatTable) {
 	spec := "0 */" + strconv.Itoa(nt.Time) + " * * * ?"
 
 	err := cs[nt.IP].AddFunc(spec, func() {
-		CallCoco(nt.IP, strconv.Itoa(nt.Port))
+		CallCoco(nt.HostName, nt.IP, strconv.Itoa(nt.Port))
 	})
 
 	if err != nil {
@@ -59,7 +59,16 @@ func CrontabToCheckHosts() {
 		ht := Mysql.SelectHostsTable()
 		for _, i := range ht {
 			Mysql.DeleteHosts(i)
-			CallPolice.CallPolice(i.IP + "\n has not return status")
+			pwd := Global.DataFileDir
+			des := pwd + time.Now().Format("2006-01/02") + Global.DataFileName
+
+			_, err := File.FindWorkInFile(des, time.Now().Add(-time.Minute * 1).Format("2006-01-02 15:04"),
+				"patrol", i.IP, "false")
+
+			if err == nil {
+				CallPolice.CallPolice(i.IP + "\n 服务器存在失联可能，请检查")
+			}
+
 			if err := json.Unmarshal([]byte("\n{\"Time\":\""+time.Now().Format("2006-01-02 15:04")+
 				"\",\"IP\":\""+i.IP+"\", \"Hostname\":\"Unknown-Error\","+
 				" \"Info\":\"patrol\", \"Status\":false}"), &jsonfile); err != nil {

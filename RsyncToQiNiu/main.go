@@ -85,10 +85,12 @@ func main() {
 				if err != nil {
 					log.Fatal(err)
 				}
+
+				tmpString := strings.TrimPrefix(i, dir+"/")
 				if ! IsRight {
-					fmt.Println(i + " is OK")
+					fmt.Println(i + " to " + name + tmpString + " is OK")
 				} else {
-					fmt.Println(i + " is Error")
+					fmt.Println(i + " to " + name + tmpString + " is Error")
 				}
 			}
 		}

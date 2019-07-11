@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/gorilla/mux"
 	"net/http"
 	"time"
@@ -19,7 +20,7 @@ func Logger(inner http.Handler, name string) http.Handler {
 		start := time.Now()
 		inner.ServeHTTP(w, r)
 
-		WriteLog(r.Method + "\t" + r.RequestURI + "\t" + name + "\t" + time.Since(start).String())
+		fmt.Println(r.Method + "\t" + r.RequestURI + "\t" + name + "\t" + time.Since(start).String())
 	})
 }
 
