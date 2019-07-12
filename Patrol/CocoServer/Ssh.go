@@ -129,7 +129,7 @@ func SshToNat(w http.ResponseWriter, r *http.Request) {
 
 	// 读取用户输入的参数信息
 	getNat := r.Form.Get("nat")
-	getPort , err:= strconv.Atoi(r.Form.Get("port"))
+	getPort, err := strconv.Atoi(r.Form.Get("port"))
 
 	fmt.Println(getNat)
 	fmt.Println(getPort)
@@ -156,4 +156,5 @@ func SshToNat(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(getNat); err != nil {
 		WriteLog(err.Error())
 	}
+	WriteLog(time.Now().Format("2006.01.02 15:04") + "\t ssh " + getNat + " successfully")
 }
