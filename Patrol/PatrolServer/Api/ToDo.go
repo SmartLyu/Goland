@@ -490,17 +490,17 @@ func ChangPoliceStatus(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")             //返回数据格式是json
 
 	if Global.IsPolice {
-		CallPolice.CallPolice(time.Now().Format("2006.01.02 15:04") + "\n  现在进入维护模式，暂停报警功能")
+		CallPolice.CallMessage(time.Now().Format("2006.01.02 15:04") + "\n  现在进入维护模式，暂停报警功能")
 		Global.IsPolice = false
 		go func() {
 			time.Sleep(time.Hour * 6)
 			Global.IsPolice = true
-			CallPolice.CallPolice(time.Now().Format("2006.01.02 15:04") + "\n  现在结束维护功能，开启报警功能")
+			CallPolice.CallMessage(time.Now().Format("2006.01.02 15:04") + "\n  现在结束维护功能，开启报警功能")
 		}()
 
 	} else {
 		Global.IsPolice = true
-		CallPolice.CallPolice(time.Now().Format("2006.01.02 15:04") + "\n  现在结束维护功能，开启报警功能")
+		CallPolice.CallMessage(time.Now().Format("2006.01.02 15:04") + "\n  现在结束维护功能，开启报警功能")
 	}
 
 	// 返回信息
