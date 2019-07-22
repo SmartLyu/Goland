@@ -2,8 +2,11 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"os"
+	"runtime"
+	"strconv"
 	"time"
 )
 
@@ -37,12 +40,15 @@ func WriteLog(message string) {
 		n, _ := f.Seek(0, os.SEEK_END)
 		// 从末尾的偏移量开始写入内容
 		_, err = f.WriteAt([]byte(time.Now().Format("2006-01-02 15:04:05")+"\t"+
-			message+"\n"), n)
+			message + "  goroutine is :" + strconv.Itoa(runtime.NumGoroutine()) +"\n"), n)
 	}
-	_ = f.Close()
 
 	if err != nil {
 		log.Fatal(errors.New("cacheFileList.yml file writed failed. err: " + err.Error()))
+	}
+	err = f.Close()
+	if err != nil {
+		fmt.Println("close: "+err.Error())
 	}
 }
 

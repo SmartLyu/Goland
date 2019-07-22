@@ -26,7 +26,7 @@ func Logger(inner http.Handler, name string) http.Handler {
 func NewRouter() *mux.Router {
 
 	router := mux.NewRouter().StrictSlash(true)
-	route :=  routes
+	route := routes
 	var handler http.Handler
 	handler = route.HandlerFunc
 	handler = Logger(handler, route.Name)
@@ -39,16 +39,15 @@ func NewRouter() *mux.Router {
 	return router
 }
 
-
 var routes = Route{
 	"StartMonitor",
 	"Post",
 	"/monitor",
 	SshToNat,
-
 }
 
 func Api(port string) {
 	router := NewRouter()
 	WriteLog(http.ListenAndServe(":"+port, router).Error())
+	listenSig <- 0
 }

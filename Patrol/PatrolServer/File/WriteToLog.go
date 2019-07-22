@@ -6,6 +6,8 @@ import (
 	"errors"
 	"log"
 	"os"
+	"runtime"
+	"strconv"
 	"time"
 )
 
@@ -48,16 +50,16 @@ func WriteLog(message string, datadir string, logfile string) {
 
 func WriteErrorLog(message string) {
 	dir, file := Global.UpdateLog()
-	CallPolice.CallPolice("巡查服务器异常：Error \t"+message)
+	CallPolice.CallMessage("巡查服务器出现异常：Error \t"+message)
 	WriteLog("Error\t"+message, dir, file)
 }
 
 func WriteInfoLog(message string) {
 	dir, file := Global.UpdateLog()
-	WriteLog("Info\t"+message, dir, file)
+	WriteLog("Info\t"+message+"  goroutine is :" + strconv.Itoa(runtime.NumGoroutine()), dir, file)
 }
 
 func WriteAccessLog(message string) {
 	dir, file := Global.UpdateAcessLog()
-	WriteLog(message, dir, file)
+	WriteLog(message+"  goroutine is :" + strconv.Itoa(runtime.NumGoroutine()), dir, file)
 }

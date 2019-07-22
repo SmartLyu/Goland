@@ -9,12 +9,11 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"os"
 	"strconv"
 	"time"
 )
 
-func connect(user, password, host, key string, port int, cipherList []string) (*ssh.Session, error) {
+func connect(user, password, host, key string, port int, cipherList []string) (*ssh.Session, *ssh.Client, error) {
 	var (
 		auth         []ssh.AuthMethod
 		addr         string
@@ -31,7 +30,7 @@ func connect(user, password, host, key string, port int, cipherList []string) (*
 	} else {
 		pemBytes, err := ioutil.ReadFile(key)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
 		var signer ssh.Signer
@@ -41,7 +40,7 @@ func connect(user, password, host, key string, port int, cipherList []string) (*
 			signer, err = ssh.ParsePrivateKeyWithPassphrase(pemBytes, []byte(password))
 		}
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		auth = append(auth, ssh.PublicKeys(signer))
 	}
@@ -72,12 +71,13 @@ func connect(user, password, host, key string, port int, cipherList []string) (*
 	addr = fmt.Sprintf("%s:%d", host, port)
 
 	if client, err = ssh.Dial("tcp", addr, clientConfig); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// create session
 	if session, err = client.NewSession(); err != nil {
-		return nil, err
+
+		return nil, client, err
 	}
 
 	modes := ssh.TerminalModes{
@@ -87,10 +87,10 @@ func connect(user, password, host, key string, port int, cipherList []string) (*
 	}
 
 	if err := session.RequestPty("xterm", 80, 40, modes); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return session, nil
+	return session, client, nil
 }
 
 var (
@@ -101,23 +101,26 @@ var (
 
 func sshDoShell(ip string, port int, cmd string) error {
 	ciphers := []string{}
-	session, err := connect(username, password, ip, key, port, ciphers)
+	session, client, err := connect(username, password, ip, key, port, ciphers)
 
 	if err != nil {
 		fmt.Println("连接 ", ip, " 异常")
 		log.Panic(err)
 	}
 
-	session.Stdout = os.Stdout
-	session.Stderr = os.Stderr
+	//session.Stdout = os.Stdout
+	//session.Stderr = os.Stderr
 
 	err = session.Run(cmd)
 	if err != nil {
-		_ = session.Close()
+		errl := session.Close()
+		fmt.Print("error has stopped" + errl.Error())
 		return errors.New(err.Error())
 	}
 
 	_ = session.Close()
+	_ = client.Close()
+
 	return nil
 }
 
@@ -130,9 +133,6 @@ func SshToNat(w http.ResponseWriter, r *http.Request) {
 	// 读取用户输入的参数信息
 	getNat := r.Form.Get("nat")
 	getPort, err := strconv.Atoi(r.Form.Get("port"))
-
-	fmt.Println(getNat)
-	fmt.Println(getPort)
 
 	if getNat == "" || err != nil {
 		w.WriteHeader(http.StatusFailedDependency)
@@ -157,4 +157,5 @@ func SshToNat(w http.ResponseWriter, r *http.Request) {
 		WriteLog(err.Error())
 	}
 	WriteLog(time.Now().Format("2006.01.02 15:04") + "\t ssh " + getNat + " successfully")
+	return
 }

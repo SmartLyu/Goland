@@ -22,7 +22,7 @@ func httpPostJson(jsonStr string,port string) error {
 		return err
 	}
 
-	defer func() {
+	func() {
 		if err := resp.Body.Close(); err != nil {
 			File.WriteErrorLog(err.Error())
 		}
