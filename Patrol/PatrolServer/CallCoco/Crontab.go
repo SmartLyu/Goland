@@ -29,6 +29,25 @@ func CrontabToCallCoco(nt Global.NatTable) {
 	select {}
 }
 
+// 计划任务
+func CrontabToDelMap() {
+	spec := "0 0 10 * * ?"
+	c := cron.New()
+
+	err := c.AddFunc(spec, func() {
+		for key, _ := range Global.ErrorMap {
+			File.WriteInfoLog("delete error map: " + key)
+			delete(Global.ErrorMap, key)
+		}
+	})
+
+	if err != nil {
+		File.WriteErrorLog("crontab is error: " + err.Error())
+	}
+	c.Start()
+	select {}
+}
+
 // 开始所有库中nat机器的计划任务
 func StartAllCrontab() {
 	for _, i := range Mysql.SelectAllNatTable() {
@@ -63,6 +82,13 @@ func CrontabToCheckHosts() {
 			des := pwd + time.Now().Format("2006-01/02") + Global.DataFileName
 
 			_, err := File.FindWorkInFile(des, time.Now().Add(-time.Minute * 1).Format("2006-01-02 15:04"),
+				i.IP, "true")
+
+			if err == nil {
+				continue
+			}
+
+			_, err = File.FindWorkInFile(des, time.Now().Add(-time.Minute * 1).Format("2006-01-02 15:04"),
 				"patrol", i.IP, "false")
 
 			if err == nil {

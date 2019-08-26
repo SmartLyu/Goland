@@ -158,6 +158,14 @@ var routes = Routes{
 		"/police/status",
 		ReturnPoliceStatus,
 	},
+
+	// 获取是否报警的状态
+	Route{
+		"ErrorMap",
+		"GET",
+		"/police/map",
+		ReturnPoliceMap,
+	},
 }
 
 // 暴露对外的相关模块

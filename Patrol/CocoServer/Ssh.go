@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"golang.org/x/crypto/ssh"
 	"io/ioutil"
-	"log"
 	"net"
 	"net/http"
 	"strconv"
@@ -60,7 +59,7 @@ func connect(user, password, host, key string, port int, cipherList []string) (*
 	clientConfig = &ssh.ClientConfig{
 		User:    user,
 		Auth:    auth,
-		Timeout: 30 * time.Second,
+		Timeout: 10 * time.Second,
 		Config:  config,
 		HostKeyCallback: func(hostname string, remote net.Addr, key ssh.PublicKey) error {
 			return nil
@@ -76,8 +75,7 @@ func connect(user, password, host, key string, port int, cipherList []string) (*
 
 	// create session
 	if session, err = client.NewSession(); err != nil {
-
-		return nil, client, err
+		return nil, nil, err
 	}
 
 	modes := ssh.TerminalModes{
@@ -104,8 +102,7 @@ func sshDoShell(ip string, port int, cmd string) error {
 	session, client, err := connect(username, password, ip, key, port, ciphers)
 
 	if err != nil {
-		fmt.Println("连接 ", ip, " 异常")
-		log.Panic(err)
+		return errors.New("连接 " + ip + " 异常" + err.Error())
 	}
 
 	//session.Stdout = os.Stdout

@@ -106,7 +106,6 @@ func ImportFile(uf UploadFile, file string, dir string, upToken string, bucketMa
 	uf.KeyName = tmpString
 	uf.KeyName = addname + uf.KeyName
 
-	fmt.Println("start to upload " + uf.LocalFile + " to " + uf.KeyName)
 	if uf.KeyName == "" {
 		return errors.New("the dir sets error")
 	}
@@ -116,6 +115,7 @@ func ImportFile(uf UploadFile, file string, dir string, upToken string, bucketMa
 		return err
 	}
 
+	fmt.Println("start to upload " + uf.LocalFile + " to " + uf.KeyName)
 	if isUpload == true {
 		if err := UpDataFile(uf, upToken); err != nil {
 			return err

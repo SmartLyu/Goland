@@ -10,19 +10,19 @@ func InsertNat(nt Global.NatTable) (bool) {
 	//开启事务
 	tx, err := DB.Begin()
 	if err != nil {
-		File.WriteErrorLog("tx fail")
+		File.WriteErrorLog("Mysql DB Nat insert start fail")
 		return false
 	}
 	//准备sql语句
 	stmt, err := tx.Prepare("INSERT INTO nat_info (`IP`,`hostname`,`port`, `time`) VALUES (?, ?, ?, ?)")
 	if err != nil {
-		File.WriteErrorLog("Prepare fail")
+		File.WriteErrorLog("Mysql DB Nat insert Prepare fail")
 		return false
 	}
 	//将参数传递到sql语句中并且执行
 	_, err = stmt.Exec(nt.IP, nt.HostName, nt.Port, nt.Time)
 	if err != nil {
-		File.WriteErrorLog("Exec fail")
+		File.WriteErrorLog("Mysql DB Nat insert Exec fail")
 		return false
 	}
 	//将事务提交
@@ -37,18 +37,18 @@ func DeleteNat(nt Global.NatTable) (bool) {
 	//开启事务
 	tx, err := DB.Begin()
 	if err != nil {
-		File.WriteErrorLog("tx fail")
+		File.WriteErrorLog("Mysql DB Nat delete start  fail")
 	}
 	//准备sql语句
 	stmt, err := tx.Prepare("DELETE FROM nat_info WHERE ip = ?")
 	if err != nil {
-		File.WriteErrorLog("Prepare fail")
+		File.WriteErrorLog("Mysql DB Nat delete Prepare fail")
 		return false
 	}
 	//设置参数以及执行sql语句
 	_, err = stmt.Exec(nt.IP)
 	if err != nil {
-		File.WriteErrorLog("Exec fail")
+		File.WriteErrorLog("Mysql DB Nat delete Exec fail")
 		return false
 	}
 	//提交事务
@@ -72,7 +72,7 @@ func SelectAllNatTable() ([]Global.NatTable) {
 		//将每一行的结果都赋值到一个user对象中
 		err := rows.Scan(&nt.IP, &nt.HostName, &nt.Port, &nt.Time)
 		if err != nil {
-			File.WriteErrorLog("rows fail")
+			File.WriteErrorLog("Mysql DB Nat select rows fail")
 		}
 		//将user追加到users的这个数组中
 		nts = append(nts, nt)

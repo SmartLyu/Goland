@@ -37,6 +37,12 @@ func myCmd(bash string, shell ...string) error {
 	}
 	err = cmd.Wait()
 
+	defer func() {
+		if err = cmd.Process.Kill() ; err != nil {
+			WriteFile("Kill Error : " +err.Error())
+		}
+	}()
+
 	if err != nil {
 		WriteFile("Execute Shell: " + strings.Join(shell," "))
 		return errors.New("failed with error:" + err.Error())

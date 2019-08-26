@@ -52,24 +52,21 @@ func main() {
 	// 判断用户是否只是想判断是否存在
 	if JustCheck == "1" {
 		if uf.LocalFile != "" {
-			tmpString := strings.Split(uf.LocalFile, "")
+			tmpString := uf.LocalFile
 			if dir != "" {
-				tmpString = strings.Split(uf.LocalFile, dir+"/")
+				tmpString = strings.TrimPrefix(tmpString, dir+"/")
 			}
-			uf.KeyName = tmpString[1]
+			uf.KeyName = tmpString
 			if uf.KeyName == "" {
 				log.Fatal(errors.New("the dir sets error"))
 			}
 			uf.KeyName = name + uf.KeyName
 
 			IsRight, err := CheckFile(uf, uf.LocalFile, bucketManager)
-			if err != nil {
-				log.Fatal(errors.New("the dir sets error" + err.Error()))
-			}
 			if ! IsRight {
 				fmt.Println("OK")
 			} else {
-				fmt.Println("Error")
+				fmt.Println("Error: ", err)
 			}
 			return
 		}
@@ -82,15 +79,11 @@ func main() {
 
 			for _, i := range files {
 				IsRight, err := CheckDir(uf, i, dir, upToken, bucketManager, name)
-				if err != nil {
-					log.Fatal(err)
-				}
-
 				tmpString := strings.TrimPrefix(i, dir+"/")
 				if ! IsRight {
 					fmt.Println(i + " to " + name + tmpString + " is OK")
 				} else {
-					fmt.Println(i + " to " + name + tmpString + " is Error")
+					fmt.Println(i+" to "+name+tmpString+" is Error: ", err)
 				}
 			}
 		}
@@ -99,17 +92,10 @@ func main() {
 
 	// 上传单个文件
 	if uf.LocalFile != "" {
-		tmpString := strings.Split(uf.LocalFile, "")
-		if dir != "" {
-			tmpString = strings.Split(uf.LocalFile, dir+"/")
-		}
-		uf.KeyName = tmpString[1]
-		uf.KeyName = name + uf.KeyName
-		if uf.KeyName == "" {
-			log.Fatal(errors.New("the dir sets error"))
-		}
-
-		if err := UpDataFile(uf, upToken); err != nil {
+		upToken = UpDataGetToken(uf)
+		bucketManager = GetFileData(uf)
+		fmt.Println("prepare to upload " + uf.LocalFile)
+		if err := ImportFile(uf, uf.LocalFile, dir, upToken, bucketManager, name); err != nil {
 			log.Fatal(err)
 		}
 		return

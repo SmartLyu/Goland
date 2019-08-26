@@ -12,6 +12,7 @@ func main() {
 	go Api.StartApi(Global.ApiPost)
 	go Api.StartPublicApi(Global.ApiPublicPost)
 	CallCoco.StartAllCrontab()
+	CallCoco.CrontabToDelMap()
 	CallCoco.CrontabToCheckHosts()
 	<-Global.ListenSig
 	<-Global.ListenPublicSig

@@ -17,6 +17,11 @@ type NatTable struct {
 	Time     int    `json:"TIME"`
 }
 
+type ErrorJson struct {
+	Key   string `json:"KEY"`
+	Value int `json:"VALUE"`
+}
+
 type HostsTable struct {
 	IP   string `json:"IP"`
 	Time string `json:"TIME"`

@@ -50,10 +50,7 @@ type sendMsgError struct {
 	Errmsg  string `json:"errmsg"`
 }
 
-func SendWeiXinMessage(id corpText) error {
-	if ! Global.IsPolice {
-		return nil
-	}
+func ForceSendMessage(id corpText) error{
 	corpid := id.corpid
 	corpsecret := id.corpsecret
 
@@ -82,6 +79,13 @@ func SendWeiXinMessage(id corpText) error {
 	}
 
 	return nil
+}
+
+func SendWeiXinMessage(id corpText) error {
+	if ! Global.IsPolice {
+		return nil
+	}
+	return ForceSendMessage(id)
 }
 
 //发送消息.msgbody 必须是 API支持的类型

@@ -14,7 +14,7 @@ import (
 )
 
 var installUrl = "http://139.159.233.66:8888/download/falcon-agent.tar.gz"
-var falconDir = "/work/servers/FalconAgent"
+var falconDir = "/work/servers/falcon-agent/"
 
 // 获取变量值
 var (
@@ -110,15 +110,15 @@ func main() {
 	}
 
 	// 创建目录
-	if err := myCmd("/usr/bin/mkdir", "-p", falconDir); err != nil {
-		if err := myCmd("/usr/bin/ls", falconDir); err != nil {
+	if err := myCmd("/bin/mkdir", "-p", falconDir); err != nil {
+		if err := myCmd("/bin/ls", falconDir); err != nil {
 			fmt.Println("mkdir falcon dir error")
 			log.Fatal(err)
 		}
 	}
 
-	if err := myCmd("/usr/bin/mkdir", "-p", "/work/src"); err != nil {
-		if err := myCmd("/usr/bin/ls", "/work/src"); err != nil {
+	if err := myCmd("/bin/mkdir", "-p", "/work/src"); err != nil {
+		if err := myCmd("/bin/ls", "/work/src"); err != nil {
 			fmt.Println("mkdir work dir error")
 			log.Fatal(err)
 		}

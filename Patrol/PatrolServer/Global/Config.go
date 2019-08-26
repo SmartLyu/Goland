@@ -14,6 +14,8 @@ var (
 	AcessLogFileName = ".access.log"                  // 记录日志信息
 	MonitorShellFile = "/work/sh/PatrolMonitor.sh"    // 巡查脚本存放位置
 	NatShellFile     = "/work/sh/NatPatrol.sh"        // Nat使用的巡查脚本存放位置
+	ErrorMap         = map[string]int{}               // 存储报警信息至内存
+	ErrorMax         = 3                              // 最多报警次数
 	ListenSig        = make(chan int)                 // 监听后台阻塞信号
 	ListenPublicSig  = make(chan int)                 // 监听后台公共端口阻塞信号
 	CocoUrl          = "http://10.4.0.4:8666/monitor" // coco的端口
