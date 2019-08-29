@@ -5,5 +5,15 @@ var SecretId = corpText{
 	corpsecret: "",
 	touser:     "YuZhiYuan",
 	agentid:    1000002,
-	content:    "Test Api",
-	safe:       "1"}
+	content:    "Error Api",
+	safe:       "1"
+}
+
+var MessageId = corpText{
+	corpid:     "",
+	corpsecret: "",
+	touser:     "YuZhiYuan",
+	agentid:    1000002,
+	content:    "Message Api",
+	safe:       "1",
+}
