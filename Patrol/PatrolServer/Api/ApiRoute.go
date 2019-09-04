@@ -115,7 +115,7 @@ var routes = Routes{
 	Route{
 		"MonitorNat",
 		"POST",
-		"/monitor/nat",
+		"/monitor/check_nat",
 		ReturnNatMonitor,
 	},
 
@@ -165,6 +165,14 @@ var routes = Routes{
 		"GET",
 		"/police/map",
 		ReturnPoliceMap,
+	},
+
+	// 获取是否报警的状态
+	Route{
+		"NatHostsMap",
+		"GET",
+		"/monitor/map",
+		ReturnNatHostsMap,
 	},
 }
 

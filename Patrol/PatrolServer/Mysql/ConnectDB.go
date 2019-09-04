@@ -26,9 +26,9 @@ func InitDB()  {
 	//打开数据库,前者是驱动名，所以要导入： _ "github.com/go-sql-driver/mysql"
 	DB, _ = sql.Open("mysql", path)
 	//设置数据库最大连接数
-	DB.SetConnMaxLifetime(100)
+	DB.SetConnMaxLifetime(10000)
 	//设置上数据库最大闲置连接数
-	DB.SetMaxIdleConns(10)
+	DB.SetMaxIdleConns(4000)
 	//验证连接
 	if err := DB.Ping(); err != nil{
 		File.WriteErrorLog("opon database fail")

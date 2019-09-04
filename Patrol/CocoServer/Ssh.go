@@ -140,9 +140,9 @@ func SshToNat(w http.ResponseWriter, r *http.Request) {
 		"rm -f /tmp/patrol-tmp.sh")
 	if err != nil {
 		WriteLog("ssh error:" + r.RemoteAddr)
-		body, _, err := httpPostJson("ssh error:", "false")
+		body, _, err := httpPostJson("ssh-to-nat-"+getNat, "false")
 		if err != nil {
-			WriteLog("post error:" + r.RemoteAddr)
+			WriteLog("post error:" + r.RemoteAddr + " - " + err.Error())
 		}
 		WriteLog(body)
 	}
@@ -153,6 +153,12 @@ func SshToNat(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(getNat); err != nil {
 		WriteLog(err.Error())
 	}
+
+	body, _, err := httpPostJson("ssh-to-nat-"+getNat, "true")
+	if err != nil {
+		WriteLog("post error:" + r.RemoteAddr + " - " + err.Error())
+	}
+	WriteLog(body)
 	WriteLog(time.Now().Format("2006.01.02 15:04") + "\t ssh " + getNat + " successfully")
 	return
 }

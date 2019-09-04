@@ -40,14 +40,16 @@ func PostMonitorInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 添加数据
-	if err := File.WriteFile(Global.ReadJson(jsonfile)); err != nil {
-		File.WriteErrorLog(err.Error())
-	}
-	CallPolice.Judge(jsonfile)
+	go func() {
+		if err := File.WriteFile(Global.ReadJson(jsonfile)); err != nil {
+			File.WriteErrorLog(err.Error())
+		}
+		CallPolice.Judge(jsonfile)
 
-	hostjson.IP = jsonfile.IP
-	hostjson.Time = time.Now().Format("2006-01-02 15:04")
-	Mysql.DeleteHosts(hostjson)
+		hostjson.IP = jsonfile.IP
+		hostjson.Time = time.Now().Format("2006-01-02 15:04")
+		Mysql.DeleteHosts(hostjson)
+	}()
 
 	// 返回信息
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -81,6 +83,7 @@ func PostNatInfo(w http.ResponseWriter, r *http.Request) {
 
 	// 添加数据
 	jsonfile.Time = time.Now().Format("2006-01-02 15:04")
+	File.WriteInfoLog("start insert " + jsonfile.IP + "-" + jsonfile.Time)
 	Mysql.InsertHosts(jsonfile)
 
 	// 返回信息
@@ -538,7 +541,27 @@ func ReturnPoliceMap(w http.ResponseWriter, r *http.Request) {
 		var json Global.ErrorJson
 		json.Key = key
 		json.Value = value
-		jsonfiles = append(jsonfiles,json)
+		jsonfiles = append(jsonfiles, json)
+	}
+
+	// 返回信息
+	if err := json.NewEncoder(w).Encode(jsonfiles); err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		File.WriteErrorLog(err.Error())
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+// 显示报警队列信息
+func ReturnNatHostsMap(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")             //允许访问所有域
+	w.Header().Add("Access-Control-Allow-Headers", "Content-Type") //header的类型
+	w.Header().Set("content-type", "application/json")             //返回数据格式是json
+
+	var jsonfiles []Global.HostsTable
+
+	for key, _ := range Global.NatHostsMap {
+		jsonfiles = append(jsonfiles, key)
 	}
 
 	// 返回信息
