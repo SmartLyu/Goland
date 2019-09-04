@@ -83,7 +83,6 @@ func PostNatInfo(w http.ResponseWriter, r *http.Request) {
 
 	// 添加数据
 	jsonfile.Time = time.Now().Format("2006-01-02 15:04")
-	File.WriteInfoLog("start insert " + jsonfile.IP + "-" + jsonfile.Time)
 	Mysql.InsertHosts(jsonfile)
 
 	// 返回信息
