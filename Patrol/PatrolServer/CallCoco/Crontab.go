@@ -26,7 +26,6 @@ func CrontabToCallCoco(nt Global.NatTable) {
 		File.WriteErrorLog("crontab is error: " + err.Error())
 	}
 	cs[nt.IP].Start()
-	select {}
 }
 
 // 计划任务
@@ -35,9 +34,9 @@ func CrontabToDelMap() {
 	c := cron.New()
 
 	err := c.AddFunc(spec, func() {
-		for key, _ := range Global.ErrorMap {
+		for key, _ := range Global.ErrorMap.Data {
 			File.WriteInfoLog("delete error map: " + key)
-			delete(Global.ErrorMap, key)
+			Global.ErrorMap.Delete(key)
 		}
 	})
 
@@ -45,7 +44,6 @@ func CrontabToDelMap() {
 		File.WriteErrorLog("crontab is error: " + err.Error())
 	}
 	c.Start()
-	select {}
 }
 
 // 开始所有库中nat机器的计划任务
@@ -112,6 +110,4 @@ func CrontabToCheckHosts() {
 		File.WriteErrorLog("crontab is error: " + err.Error())
 	}
 	c.Start()
-	select {}
-
 }

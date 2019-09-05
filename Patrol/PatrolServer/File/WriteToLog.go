@@ -56,10 +56,10 @@ func WriteErrorLog(message string) {
 
 func WriteInfoLog(message string) {
 	dir, file := Global.UpdateLog()
-	WriteLog("Info\t"+message+"  goroutine is :" + strconv.Itoa(runtime.NumGoroutine()), dir, file)
+	WriteLog("Info\t"+message+"\tgoroutine: " + strconv.Itoa(runtime.NumGoroutine()), dir, file)
 }
 
 func WriteAccessLog(message string) {
 	dir, file := Global.UpdateAcessLog()
-	WriteLog(message+"  goroutine is :" + strconv.Itoa(runtime.NumGoroutine()), dir, file)
+	WriteLog(message+"\tgoroutine: " + strconv.Itoa(runtime.NumGoroutine()), dir, file)
 }

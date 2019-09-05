@@ -14,8 +14,8 @@ var (
 	AcessLogFileName = ".access.log"                  // 记录日志信息
 	MonitorShellFile = "/work/sh/PatrolMonitor.sh"    // 巡查脚本存放位置
 	NatShellFile     = "/work/sh/NatPatrol.sh"        // Nat使用的巡查脚本存放位置
-	ErrorMap         = map[string]int{}               // 存储报警信息至内存
-	NatHostsMap      = map[HostsTable]bool{}        // 存储Nat机器中子服务器信息至内存
+	ErrorMap         = NewErrorMapType()              // 存储报警信息至内存
+	NatHostsMap      = NewNatHostsMapType()           // 存储Nat机器中子服务器信息至内存
 	ErrorMax         = 3                              // 最多报警次数
 	ListenSig        = make(chan int)                 // 监听后台阻塞信号
 	ListenPublicSig  = make(chan int)                 // 监听后台公共端口阻塞信号

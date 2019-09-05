@@ -41,6 +41,7 @@ func PostMonitorInfo(w http.ResponseWriter, r *http.Request) {
 
 	// 添加数据
 	go func() {
+
 		if err := File.WriteFile(Global.ReadJson(jsonfile)); err != nil {
 			File.WriteErrorLog(err.Error())
 		}
@@ -536,7 +537,7 @@ func ReturnPoliceMap(w http.ResponseWriter, r *http.Request) {
 
 	var jsonfiles []Global.ErrorJson
 
-	for key, value := range Global.ErrorMap {
+	for key, value := range Global.ErrorMap.Data {
 		var json Global.ErrorJson
 		json.Key = key
 		json.Value = value
@@ -559,7 +560,7 @@ func ReturnNatHostsMap(w http.ResponseWriter, r *http.Request) {
 
 	var jsonfiles []Global.HostsTable
 
-	for key, _ := range Global.NatHostsMap {
+	for key, _ := range Global.NatHostsMap.Data {
 		jsonfiles = append(jsonfiles, key)
 	}
 
