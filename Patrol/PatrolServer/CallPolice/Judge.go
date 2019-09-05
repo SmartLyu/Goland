@@ -9,7 +9,8 @@ import (
 func Judge(monitorjson Global.MonitorJson) {
 	mapkey := monitorjson.Hostname + "-" + strings.Split(monitorjson.Info, "=")[0]
 	if ! monitorjson.Status {
-		if Global.ErrorMap.Exist(mapkey) && Global.ErrorMap.Get(mapkey) <= Global.ErrorMax {
+		if Global.ErrorMap.Exist(mapkey) &&
+			Global.ErrorMap.Get(mapkey) <= Global.ErrorMax {
 			CallPolice(monitorjson.Hostname + " 的 " + monitorjson.Info + " 异常 \n具体服务器信息：\n   " + monitorjson.IP)
 		}
 		Global.ErrorMap.Add(mapkey, 1)

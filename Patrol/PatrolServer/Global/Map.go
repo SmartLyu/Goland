@@ -33,7 +33,7 @@ func (m *ErrorMapType) Exist(key string) bool {
 	m.Lock.Lock()
 	defer m.Lock.Unlock()
 
-	if _, isError := m.Data[key]; isError {
+	if m.Data[key] > 0 {
 		return true
 	} else {
 		return false
