@@ -7,7 +7,7 @@ import (
 )
 
 func Judge(monitorjson Global.MonitorJson) {
-	mapkey := monitorjson.Hostname + "-" + strings.Split(monitorjson.Info, "=")[0]
+	mapkey := monitorjson.IP + ":-}" + strings.Split(monitorjson.Info, "=")[0]
 	if ! monitorjson.Status {
 		if Global.ErrorMap.Exist(mapkey) &&
 			Global.ErrorMap.Get(mapkey) <= Global.ErrorMax {
@@ -22,6 +22,6 @@ func Judge(monitorjson Global.MonitorJson) {
 			Global.ErrorMap.Delete(mapkey)
 		}
 	}
-	WriteInfoLog("获取到 " + monitorjson.IP + "的 " + monitorjson.Hostname +
+	WriteInfoLog("获取到 " + monitorjson.IP + " 的 " + monitorjson.Hostname +
 		" 的数据：" + strconv.FormatBool(monitorjson.Status))
 }

@@ -31,3 +31,11 @@ func ReadJson(mj MonitorJson) (string) {
 	js, _ := json.Marshal(&mj)
 	return string(js)
 }
+
+func (m *MonitorJson) Exist() bool {
+
+	if m.IP == "" || m.Info == "" || m.Time == ""{
+		return false
+	}
+	return true
+}

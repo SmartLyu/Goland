@@ -8,12 +8,17 @@ import (
 	"os"
 	"runtime"
 	"strconv"
+	"sync"
 	"time"
 )
+
+var logLock sync.Mutex
 
 // 写入日志信息
 func WriteLog(message string, datadir string, logfile string) {
 
+	logLock.Lock()
+	defer logLock.Unlock()
 	// 判断目录是否存在，不存在需要创建
 	_, err := os.Stat(datadir)
 	if err != nil && os.IsNotExist(err) {

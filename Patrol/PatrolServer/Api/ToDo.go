@@ -37,13 +37,16 @@ func PostMonitorInfo(w http.ResponseWriter, r *http.Request) {
 		if err := json.NewEncoder(w).Encode(err); err != nil {
 			File.WriteErrorLog(err.Error())
 		}
+		if ! jsonfile.Exist() {
+			File.WriteInfoLog("Error: has got empty json data")
+		}
+		return
 	}
 
 	// 添加数据
 	go func() {
-
 		if err := File.WriteFile(Global.ReadJson(jsonfile)); err != nil {
-			File.WriteErrorLog(err.Error())
+			File.WriteErrorLog("write info " + err.Error())
 		}
 		CallPolice.Judge(jsonfile)
 
@@ -137,7 +140,6 @@ func ReturnMonitorInfo(w http.ResponseWriter, r *http.Request) {
 			fileData, err := ioutil.ReadFile(des)
 			if err != nil {
 				File.WriteErrorLog("Read File Err: " + err.Error())
-				http.NotFoundHandler().ServeHTTP(w, r)
 			} else {
 				File.WriteInfoLog("Send File:" + des)
 				_, err = w.Write(fileData)
@@ -149,7 +151,6 @@ func ReturnMonitorInfo(w http.ResponseWriter, r *http.Request) {
 			data, err := File.FindWorkInFile(des, getKey1, getKey2, getKey3)
 			if err != nil {
 				File.WriteInfoLog("Find key Err " + err.Error())
-				http.NotFoundHandler().ServeHTTP(w, r)
 			} else {
 				File.WriteInfoLog("Send File:" + des)
 				_, err = w.Write([]byte(data))
@@ -160,7 +161,7 @@ func ReturnMonitorInfo(w http.ResponseWriter, r *http.Request) {
 		}
 		_, _ = w.Write([]byte("\n{\"Time\":\"" + time.Now().Format("2006-01-02 15:04") +
 			"\",\"IP\":\"127.0.0.1\", \"Hostname\":\"JH-Api-QCloudGZ3-Patrol\"," +
-			" \"Info\":\"patrol\", \"Status\":true}]"))
+			" \"Info\":\"GetPatrolInfo\", \"Status\":true}]"))
 	}
 }
 

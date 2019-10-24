@@ -4,11 +4,16 @@ import (
 	"../Global"
 	"errors"
 	"os"
+	"sync"
 )
+
+var fileLock sync.Mutex
 
 // 记录监控信息
 func WriteFile(message string) error {
 
+	fileLock.Lock()
+	defer fileLock.Unlock()
 	datadir, datafile := Global.UpdateFile()
 
 	// 判断目录是否存在，不存在需要创建

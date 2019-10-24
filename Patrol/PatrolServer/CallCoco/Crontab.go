@@ -5,7 +5,6 @@ import (
 	"../File"
 	"../Global"
 	"../Mysql"
-	"encoding/json"
 	"github.com/robfig/cron"
 	"strconv"
 	"time"
@@ -68,7 +67,6 @@ func StopCrontab(nt Global.NatTable) {
 }
 
 func CrontabToCheckHosts() {
-	var jsonfile Global.MonitorJson
 	c := cron.New()
 	spec := "50 * * * * ?"
 
@@ -86,18 +84,22 @@ func CrontabToCheckHosts() {
 				continue
 			}
 
-			_, err = File.FindWorkInFile(des, time.Now().Add(-time.Minute * 1).Format("2006-01-02 15:04"),
-				"patrol", i.IP, "false")
+			_, err = File.FindWorkInFile(des, time.Now().Add(-time.Minute * 2).Format("2006-01-02 15:04"),
+				i.IP, "true")
 
 			if err == nil {
-				CallPolice.CallPolice(i.IP + "\n 服务器存在失联可能，请检查")
+				continue
 			}
 
-			if err := json.Unmarshal([]byte("\n{\"Time\":\""+time.Now().Format("2006-01-02 15:04")+
-				"\",\"IP\":\""+i.IP+"\", \"Hostname\":\"Unknown-Error\","+
-				" \"Info\":\"patrol\", \"Status\":false}"), &jsonfile); err != nil {
-				File.WriteErrorLog(err.Error())
+			jsonfile := Global.MonitorJson{
+				Time: time.Now().Format("2006-01-02 15:04"),
+				IP: i.IP,
+				Hostname: "Unknown-Hostname",
+				Info: "survive",
+				Status: false,
 			}
+
+			CallPolice.Judge(jsonfile)
 
 			// 添加数据
 			if err := File.WriteFile(Global.ReadJson(jsonfile)); err != nil {

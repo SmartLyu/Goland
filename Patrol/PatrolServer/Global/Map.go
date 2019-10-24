@@ -52,7 +52,6 @@ func (m *ErrorMapType) Get(key string) int {
 func (m *ErrorMapType) Getall() (Keys []string, Values []int) {
 	m.Lock.Lock()
 	defer m.Lock.Unlock()
-
 	for key, value := range m.Data {
 		Keys = append(Keys, key)
 		Values = append(Values, value)

@@ -161,7 +161,7 @@ func buildMaster() {
 		cmd := "/usr/bin/yum install -y keepalived ; " +
 			"/usr/bin/wget " + installUrl + "keepalived.conf -O /etc/keepalived/keepalived.conf ; " +
 			"/usr/bin/sed -i 's/mip/" + mip + "/' /etc/keepalived/keepalived.conf ; " +
-			//	"/usr/bin/sed -i 's/BACKUP/MASTER/' /etc/keepalived/keepalived.conf ;" +
+		//	"/usr/bin/sed -i 's/BACKUP/MASTER/' /etc/keepalived/keepalived.conf ;" +
 			"/usr/bin/sed -i 's/vip/" + vip + "/' /etc/keepalived/keepalived.conf ; " +
 			"/usr/bin/sed -i 's/oip/" + bm_cip + "/' /etc/keepalived/keepalived.conf ; " +
 			"/usr/bin/systemctl restart keepalived"
@@ -172,7 +172,7 @@ func buildMaster() {
 	}
 
 	cmd := "yum install -y epel-release ;" +
-		"yum install -y http://120.92.156.238:8888/mha/mha4mysql-node.rpm ;" +
+		"yum install -y " + installUrl + "/mha/mha4mysql-node.rpm ;" +
 		"ln -s /work/servers/mysql/bin/mysqlbinlog /usr/local/bin/mysqlbinlog;" +
 		"ln -s /work/servers/mysql/bin/mysql /usr/local/bin/mysql"
 
@@ -219,7 +219,7 @@ func buildCandicate() {
 				}
 			}
 			cmd := "yum install -y epel-release ;" +
-				"yum install -y http://120.92.156.238:8888/mha/mha4mysql-node.rpm ;" +
+				"yum install -y "+ installUrl + "/mha4mysql-node.rpm ;" +
 				"ln -s /work/servers/mysql/bin/mysqlbinlog /usr/local/bin/mysqlbinlog;" +
 				"ln -s /work/servers/mysql/bin/mysql /usr/local/bin/mysql"
 
@@ -244,7 +244,7 @@ func buildSlave() {
 	for _, ip := range strings.Split(sip, ",") {
 		priority -= 10
 		cmd := "yum install -y epel-release ;" +
-			"yum install -y http://120.92.156.238:8888/mha/mha4mysql-node.rpm;" +
+			"yum install -y "+ installUrl + "/mha4mysql-node.rpm;" +
 			"ln -s /work/servers/mysql/bin/mysqlbinlog /usr/local/bin/mysqlbinlog;" +
 			"ln -s /work/servers/mysql/bin/mysql /usr/local/bin/mysql"
 		if err := sshDoShell(ip, cmd); err != nil {

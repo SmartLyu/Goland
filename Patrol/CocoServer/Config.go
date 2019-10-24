@@ -15,8 +15,8 @@ var (
 
 func PostJson(message string, status string) string {
 	jsonstr := "{" +
-		"\"time\": \"" + time.Now().Format("2006.01.02 15:04") + "\"," +
-		"\"IP\": \"123.207.233.139-JH-Bak-QCloudGZ-Nat to 10.4.0.4\"," +
+		"\"time\": \"" + time.Now().Format("2006-01-02 15:04") + "\"," +
+		"\"IP\": \"123.207.233.139-JH-Bak-QCloudGZ-Nat=}10.4.0.4\"," +
 		"\"hostname\": \"JH-Api-QCloudGZ3-Jumpserver\"," +
 		"\"info\": \"" + message + "\"," +
 		"\"status\": " + status + " }"
