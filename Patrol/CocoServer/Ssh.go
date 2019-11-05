@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"golang.org/x/crypto/ssh"
 	"io/ioutil"
+	"log"
 	"net"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 )
@@ -101,22 +103,26 @@ func sshDoShell(ip string, port int, cmd string) error {
 	ciphers := []string{}
 	session, client, err := connect(username, password, ip, key, port, ciphers)
 
+	defer func() {
+		_ = session.Close()
+		errc := client.Close()
+		if errc != nil {
+			log.Println("close client has error " + errc.Error())
+		}
+	}()
+
 	if err != nil {
 		return errors.New("连接 " + ip + " 异常" + err.Error())
 	}
 
-	//session.Stdout = os.Stdout
-	//session.Stderr = os.Stderr
+	session.Stdout = os.Stdout
+	session.Stderr = os.Stderr
 
 	err = session.Run(cmd)
 	if err != nil {
-		errl := session.Close()
-		fmt.Print("error has stopped" + errl.Error())
+		log.Println("error has stopped " + err.Error())
 		return errors.New(err.Error())
 	}
-
-	_ = session.Close()
-	_ = client.Close()
 
 	return nil
 }
