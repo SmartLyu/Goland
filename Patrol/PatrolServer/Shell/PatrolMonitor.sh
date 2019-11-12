@@ -7,15 +7,17 @@
 # ==================
 
 # 全局变量
-TIMEOUT='10'
+TIMEOUT='3'
 USER=work
 
 STEPLENTH='60'
-URL="134.175.50.184:8686/monitor/collect"
+URL="patrol.ijunhai.com:8686/monitor/collect"
 HOST=${HOSTNAME}
 LOGDIR="/work/logs/openfalcon"
 LOGFILE="${LOGDIR}/patrol-monitor.log"
-DATE=$(date "+%Y-%m-%d %H:%M")
+DATE=$(TZ=Asia/Shanghai date "+%Y-%m-%d %H:%M")
+MAXSIZE=10485760
+ERRORLOG="${LOGDIR}/error.log"
 
 #设置报警阈值
 POLICE=90
@@ -31,7 +33,7 @@ PostToApi(){
     local status
     local data
 
-    ip_info=${NATINFO}" to "${IPINFO}
+    ip_info=${NATINFO}"=}"${IPINFO}
     tag_name=$1
     status=$2
 
@@ -42,31 +44,45 @@ PostToApi(){
         \"info\": \"${tag_name}\", \
         \"status\": ${status} \
         }"
-    echo "${ip_info}:${tag_name}  ${status}  " >> ${LOGFILE}
-    curl -s --connect-timeout ${TIMEOUT} -X POST -d "${data}" $URL
-    echo
+    echo "$(date) ${ip_info}:${tag_name}  ${status}  " >> ${LOGFILE}
+    curl -s --connect-timeout ${TIMEOUT} -X POST -d "${data}" $URL &>> ${LOGFILE}
+    if [[ $? -ne 0 ]];then
+        sleep 1
+        echo First $(date) ${data} >> /tmp/retry.log
+        curl -s --connect-timeout ${TIMEOUT} -X POST -d "${data}" $URL 2>> ${LOGFILE}
+        if [[ $? -ne 0 ]];then
+            sleep 1
+            echo Second $(date)  ${data} >> /tmp/retry.log
+            curl -s --connect-timeout ${TIMEOUT} -X POST -d "${data}" $URL 2>> ${LOGFILE}
+        fi
+    fi
+    echo $(date) Push data ${tag_name} successfully >> ${LOGFILE}
 }
 
 CheckCpu(){
     local status
     local cpu
-    cpu=$(top -n 1 |grep Cpu | cut -d "," -f 1 | cut -d ":" -f 2 | awk '{print $2}');
+    cpu=$(top -bn 2 |grep Cpu | tail -1 | cut -d "," -f 1 | cut -d ":" -f 2 | awk '{print $1}');
+
     echo $cpu | grep '%'
     if [[ $? -eq 0 ]];then
         cpu=$(echo $cpu | awk -F% '{print $1}')
-    else
-        cpu=$(echo $cpu | awk '{print $1*100}')
     fi
-    echo $cpu
+
+    echo $cpu | grep '\.'
+    if [[ $? -eq 0 ]];then
+        cpu=$(echo $cpu | awk -F. '{print $1}')
+    fi
+    echo cpu=$cpu
 
     if [[ $cpu -ge $POLICE ]] || [[ s$cpu == 's' ]];then
         status=false
+        top -bn 2 &>> ${ERRORLOG}
     else
         status=true
     fi
-    echo '$(date) cpu is '${cpu} >> ${LOGFILE}
 
-    PostToApi cpu=${cpu} ${status}
+    PostToApi cpu_used=${cpu}% ${status}
 }
 
 CheckLoad(){
@@ -74,15 +90,18 @@ CheckLoad(){
     local load
     local cpu_number
     cpu_number=$(cat /proc/cpuinfo| grep "processor"| wc -l)
+    if [[ ${cpu_number} == 1 ]] || [[ ${cpu_number} == 2 ]];then
+        return
+    fi
     load=$(uptime | awk '{printf ("%d\n",$NF/'${cpu_number}'*100)}')
     if [[ load -ge $POLICE ]] || [[ s$load == 's' ]];then
         status=false
+        top -bn 2 &>> ${ERRORLOG}
     else
         status=true
     fi
-    echo '$(date) load is '${load} >> ${LOGFILE}
 
-    PostToApi load=${load} ${status}
+    PostToApi load_used=${load}% ${status}
 }
 
 CheckMem(){
@@ -91,38 +110,52 @@ CheckMem(){
     mem=$(free -t | grep Total | awk '{printf ("%d\n",$3/$2*100)}')
     if [[ ${mem} -ge $POLICE ]] || [[ s$mem == 's' ]];then
         status=false
+        top -bn 2 &>> ${ERRORLOG}
     else
         status=true
     fi
-    echo '$(date) mem is '${mem} >> ${LOGFILE}
 
-    PostToApi mem=${mem} ${status}
+    PostToApi mem_used=${mem}% ${status}
 }
 
 CheckDf(){
     local status
     local df
-    df=$(df | grep ^/ | awk '{print $5}' | awk -F% '{print $1}')
+    df=$(df | grep ^/ | grep -v 'loop' | awk '{print $1}')
     for i in $df
     do
-        if [[ ${i} -ge $POLICE ]];then
+        df_mount=$(df | grep ^$i | awk '{print $6}')
+        df_h=$(df | grep ^$i | awk '{print $5}' | awk -F% '{print $1}')
+        df_inode=$(df -i | grep ^$i | awk '{print $5}' | awk -F% '{print $1}')
+        if [[ ${df_h} -ge $POLICE ]];then
             status=false
         else
             status=true
         fi
-        echo '$(date) df is '${i} >> ${LOGFILE}
+        PostToApi storage_${i}_${df_mount}=${df_h}% ${status}
 
-        PostToApi RemainingStorage=${i} ${status}
+        if [[ ${df_inode} -ge $POLICE ]];then
+            status=false
+        else
+            status=true
+        fi
+        PostToApi inode_${i}_${df_mount}=${df_h}% ${status}
     done
 
 }
 
 # 所有的基本信息监控
 CheckAll(){
-    CheckCpu
-    CheckLoad
-    CheckMem
-    CheckDf
+    CheckCpu &
+    sleep 0.01
+
+    CheckLoad &
+    sleep 0.01
+
+    CheckMem &
+    sleep 0.01
+
+    CheckDf &
 }
 
 CheckFalcon(){
@@ -150,6 +183,19 @@ CheckNginx(){
     PostToApi nginx ${status}
 }
 
+CheckPhp(){
+
+    local status
+    ps -aux | grep 'php-fpm: m' | grep -v 'grep'
+    if [[ $? -ne 0 ]];then
+        status=false
+    else
+        status=true
+    fi
+
+    PostToApi php_fpm ${status}
+}
+
 CheckMysql(){
 
     local status
@@ -167,21 +213,30 @@ CheckMysqlSlave(){
     local status=1
     local io_status=1
     local sql_status=0
-    /work/bin/mysql -u root -h 127.0.0.1 -pk8U@*hy4icomxz -e 'show slave status\G' | grep 'Slave_IO_Running: Yes'
+    /work/servers/mysql/bin/mysql -u root -h 127.0.0.1 -pk8U@*hy4icomxz -e 'show slave status\G' | grep 'Slave_IO_Running: Yes'
     io_status=$?
-    /work/bin/mysql -u root -h 127.0.0.1 -pk8U@*hy4icomxz -e 'show slave status\G' | grep 'Slave_SQL_Running: Yes'
+    /work/servers/mysql/bin/mysql -u root -h 127.0.0.1 -pk8U@*hy4icomxz -e 'show slave status\G' | grep 'Slave_SQL_Running: Yes'
     if [[ $? -ne 0 ]];then
         ps -aux | grep LogicBackupMysql | grep -v grep
         sql_status=$?
+        if [[ $sql_status -ne 0 ]];then
+            ps -aux | grep mysqldump | grep -v grep
+            sql_status=$?
+        fi
     fi
-    echo "io = ${io_status}  sql = ${sql_status}" >> ${LOGFILE}
-    if [[ ${io_status} -ne 0 ]] || [[ ${sql_status} -ne 0 ]] ;then
-        status=false
+    echo $(date) "io = ${io_status}  sql = ${sql_status}" >> ${LOGFILE}
+    if [[ ${io_status} -ne 0 ]];then
+        if [[ ${sql_status} -ne 0 ]] ;then
+            PostToApi slave=io+sql false
+        else
+            PostToApi slave=io false
+        fi
+    elif [[ ${sql_status} -ne 0 ]] ;then
+        PostToApi slave=sql false
     else
-        status=true
+        PostToApi slave true
     fi
 
-    PostToApi slave ${status}
 }
 
 # 进行监控报警
@@ -190,6 +245,8 @@ Monitor(){
      case $1 in
          all)
              CheckAll
+             ;;
+         falcon)
              CheckFalcon
              ;;
          nginx)
@@ -201,6 +258,10 @@ Monitor(){
          slave)
              CheckMysqlSlave
              ;;
+         php)
+             CheckPhp
+             ;;
+
      esac
 }
 
@@ -220,7 +281,12 @@ Init(){
     if [[ s${NATINFO} == "s" ]] || [[ s${IPINFO} == "s" ]];then
          MyError 1
     fi
-    id ${USER} && mkdir -p ${LOGDIR}
+    mkdir -p ${LOGDIR}
+    if [[ ! -w ${LOGDIR} ]];then
+        PostToApi ${LOGDIR}_permission false
+        LOGFILE='/tmp/tmp-test.log'
+    fi
+    id ${USER}
     if [[ $? -ne 0 ]];then
         echo you have to init enviroment!
         MyError 2
@@ -229,10 +295,21 @@ Init(){
 
 }
 
+# 处理日志
+# 参数1：日志绝对路径    参数2：日志报警大小上限
+CleanLogFile(){
+    local logfile=$1
+    local maxsize=$2
+    if [[ -f ${logfile} ]] && [[ $(ls -l ${logfile} | awk '{print $5}') -ge ${maxsize} ]];then
+        rm -f ${logfile}.bak
+        mv ${logfile} ${logfile}.bak
+    fi
+}
+
 Main(){
     local monitor_modle=""
-    local short_opts="hn:i:faxms"
-    local long_opts="help,nat:,ip:,all,falcon,nginx,mysql,slave"
+    local short_opts="hn:i:faxmsp"
+    local long_opts="help,nat:,ip:,all,falcon,nginx,mysql,slave,php"
     local argsw
     # 将规范化后的命令行参数分配至位置参数（$1,$2,...)
     args=$(getopt -o ${short_opts} --long ${long_opts} -- "$@" 2>/dev/null)
@@ -263,8 +340,8 @@ Main(){
                 shift
                 ;;
             -f|--falcon)
-                CheckFalcon
-                return
+                monitor_modle=${monitor_modle}"falcon "
+                shift
                 ;;
             -x|--nginx)
                 monitor_modle=${monitor_modle}"nginx "
@@ -278,6 +355,10 @@ Main(){
                 monitor_modle=${monitor_modle}"slave "
                 shift
                 ;;
+            -p|--php)
+                monitor_modle=${monitor_modle}"php "
+                shift
+                ;;
             --)
                 shift
                 break
@@ -289,15 +370,26 @@ Main(){
     esac
     done
 
-    # 错开巡查机器上传数据的时间
-    sleep $[RANDOM%3].$[RANDOM%999]
-
-    # 获取基本参数后，开始监控模块
     Init
+    PostToApi survive true
+
+    # 清理日志
+    CleanLogFile /tmp/retry.log 1048576
+    CleanLogFile ${LOGFILE} ${MAXSIZE}
+    CleanLogFile /work/logs/openfalcon/patrol-nat-monitor.log ${MAXSIZE}
+    CleanLogFile /work/logs/openfalcon/monitor.log $[MAXSIZE*10]
+    CleanLogFile ${ERRORLOGE} ${MAXSIZE}
+
+    echo "$(date) prepare to patrol monitor." >> ${LOGFILE}
+    # 错开巡查机器上传数据的时间
+    sleep $[RANDOM%10].$[RANDOM%999]
+    # 获取基本参数后，开始监控模块
+    echo "$(date) start to patrol monitor." >> ${LOGFILE}
 
     for i in ${monitor_modle}
     do
-        Monitor $i
+        sleep 0.01
+        Monitor $i &
     done
 }
 

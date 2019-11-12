@@ -159,7 +159,7 @@ var routes = Routes{
 		ReturnPoliceStatus,
 	},
 
-	// 获取是否报警的状态
+	// 获取异常列表
 	Route{
 		"ErrorMap",
 		"GET",
@@ -167,7 +167,7 @@ var routes = Routes{
 		ReturnPoliceMap,
 	},
 
-	// 获取是否报警的状态
+	// 获取hosts列表队列的状态
 	Route{
 		"NatHostsMap",
 		"GET",

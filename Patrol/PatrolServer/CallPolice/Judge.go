@@ -23,5 +23,5 @@ func Judge(monitorjson Global.MonitorJson) {
 		}
 	}
 	WriteInfoLog("获取到 " + monitorjson.IP + " 的 " + monitorjson.Hostname +
-		" 的数据：" + strconv.FormatBool(monitorjson.Status))
+		"\t的数据：" + monitorjson.Info + " 的状态为：" + strconv.FormatBool(monitorjson.Status))
 }

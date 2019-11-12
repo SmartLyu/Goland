@@ -75,28 +75,24 @@ func CrontabToCheckHosts() {
 		for _, i := range ht {
 			Mysql.DeleteHosts(i)
 			pwd := Global.DataFileDir
-			des := pwd + time.Now().Format("2006-01/02") + Global.DataFileName
+			des := pwd + time.Now().Add(-time.Minute * 1).Format("2006-01/02/15/04") + Global.DataFileName
 
-			_, err := File.FindWorkInFile(des, time.Now().Add(-time.Minute * 1).Format("2006-01-02 15:04"),
-				i.IP, "true")
+			_, err := File.FindWorkInFile(des, i.IP, "survive", "true")
 
 			if err == nil {
 				continue
 			}
-
-			_, err = File.FindWorkInFile(des, time.Now().Add(-time.Minute * 2).Format("2006-01-02 15:04"),
-				i.IP, "true")
 
 			if err == nil {
 				continue
 			}
 
 			jsonfile := Global.MonitorJson{
-				Time: time.Now().Format("2006-01-02 15:04"),
-				IP: i.IP,
+				Time:     time.Now().Format("2006-01-02 15:04"),
+				IP:       i.IP,
 				Hostname: "Unknown-Hostname",
-				Info: "survive",
-				Status: false,
+				Info:     "survive",
+				Status:   false,
 			}
 
 			CallPolice.Judge(jsonfile)

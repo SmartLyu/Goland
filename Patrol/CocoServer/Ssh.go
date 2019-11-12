@@ -139,6 +139,7 @@ func SshToNat(w http.ResponseWriter, r *http.Request) {
 
 	if getNat == "" || err != nil {
 		w.WriteHeader(http.StatusFailedDependency)
+		return
 	}
 
 	err = sshDoShell(getNat, getPort, "wget -q "+NatShellDownloadUrl+" --timeout 10 -O /tmp/patrol-tmp.sh&&"+

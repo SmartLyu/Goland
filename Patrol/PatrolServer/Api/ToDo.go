@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -52,7 +51,10 @@ func PostMonitorInfo(w http.ResponseWriter, r *http.Request) {
 
 		hostjson.IP = jsonfile.IP
 		hostjson.Time = time.Now().Format("2006-01-02 15:04")
-		Mysql.DeleteHosts(hostjson)
+
+		if jsonfile.Info == "survive" {
+			Mysql.DeleteHosts(hostjson)
+		}
 	}()
 
 	// 返回信息
@@ -111,58 +113,106 @@ func ReturnMonitorInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	pwd := Global.DataFileDir
+	// 存储查询数据
+	var monitorJsons []Global.MonitorJson
+	// 总计查询数据个数
+	var SearchNumber int64 = 0
+	// 记录查询多少空值
+	var emptyNumber = 0
+	// 记录是否是预估值
+	var approximate = ""
+	var data string
+	jsonString := "["
 
-	// 读取用户输入的参数信息
-	getTime := r.Form.Get("time")
-	getTimeTmp := strings.Split(getTime, ".")
-	if len(getTimeTmp) != 3 {
-		File.WriteErrorLog("Get Monitor Info ,But Time stye Error")
+	// 读取用户输入的时间参数信息
+	getTimeStart, err := time.Parse("2006.01.02-15:04 MST", r.Form.Get("time1")+" CST")
+	if err != nil {
+		File.WriteErrorLog("Get Monitor Start Day Info: " + r.Form.Get("time1") + " , But Time stye Error")
 		http.NotFoundHandler().ServeHTTP(w, r)
+		return
 	}
-	des := pwd + getTimeTmp[0] + "-" + getTimeTmp[1] + string(os.PathSeparator) + getTimeTmp[2] + Global.DataFileName
 
-	getKey1 := r.Form.Get("key1")
-	getKey2 := r.Form.Get("key2")
-	getKey3 := r.Form.Get("key3")
+	getTimeEnd, err := time.Parse("2006.01.02-15:04 MST", r.Form.Get("time2")+" CST")
+	if err != nil {
+		File.WriteErrorLog("Get Monitor End Day Info: " + r.Form.Get("time2") + " , But Time stye Error")
+		http.NotFoundHandler().ServeHTTP(w, r)
+		return
+	}
+
+	// 解析获取指定范围内所有日期节点
+	var getTime = make([]Global.DateTimeStyle, 2, 2)
+
+	if getTimeStart.Unix() > getTimeEnd.Unix() {
+		getTimeStart, getTimeEnd = getTimeEnd, getTimeStart
+	}
+
+	getTime = Global.GetAllTime(getTimeStart.Unix(), getTimeEnd.Unix())
+
+	// 读取用户输入的关键字参数信息
+	var getKey = make([]string, 5, 5)
+	var keyTmpNumber = 1
+	for {
+		getKey = append(getKey, r.Form.Get("key"+strconv.Itoa(keyTmpNumber)))
+		if r.Form.Get("key"+strconv.Itoa(keyTmpNumber+1)) == "" {
+			break
+		}
+		keyTmpNumber ++
+		if keyTmpNumber >= 10000 {
+			break
+		}
+	}
+
+	// 读取用户正则匹配表达式
+	getGexp := r.Form.Get("gexp")
 
 	// 读取监控存储的文件
-	desStat, err := os.Stat(des)
-	if err != nil {
-		File.WriteErrorLog("File Not Exit" + des)
-		http.NotFoundHandler().ServeHTTP(w, r)
-	} else if (desStat.IsDir()) {
-		File.WriteErrorLog("File Is Dir" + des)
-		http.NotFoundHandler().ServeHTTP(w, r)
-	} else {
-		_, _ = w.Write([]byte("["))
-		// 根据用户是否有检索需求不同处理
-		if getKey1 == "" {
-			fileData, err := ioutil.ReadFile(des)
-			if err != nil {
-				File.WriteErrorLog("Read File Err: " + err.Error())
-			} else {
-				File.WriteInfoLog("Send File:" + des)
-				_, err = w.Write(fileData)
-				if err != nil {
-					File.WriteErrorLog("http writed Err " + err.Error())
-				}
-			}
+	// 按天循环获取监控信息
+	for tmpNumber, tmpTime := range getTime {
+		if ! tmpTime.Exist() {
+			emptyNumber ++
+			continue
+		}
+		des := pwd + tmpTime.Year + "-" + tmpTime.Month + string(os.PathSeparator) + tmpTime.Day +
+			string(os.PathSeparator) + tmpTime.Hour + string(os.PathSeparator) + tmpTime.Minute + Global.DataFileName
+		_, err := os.Stat(des)
+		if err != nil {
+			continue
 		} else {
-			data, err := File.FindWorkInFile(des, getKey1, getKey2, getKey3)
+			var tmpSearchNumber int64 = 0
+			tmpSearchNumber, data, err = File.SearchWordInFile(des, getGexp, getKey...)
 			if err != nil {
 				File.WriteInfoLog("Find key Err " + err.Error())
 			} else {
-				File.WriteInfoLog("Send File:" + des)
-				_, err = w.Write([]byte(data))
+				File.WriteInfoLog("Send File:" + des + ", daytime： " + tmpTime.Print())
+				if SearchNumber <= Global.MaxSearchLen {
+					jsonString = jsonString + data
+				}
+				SearchNumber += tmpSearchNumber
+				if SearchNumber > Global.MaxReturnLen {
+					SearchNumber = SearchNumber / int64(tmpNumber) * int64(len(getTime)-emptyNumber)
+					approximate = "~"
+					break
+				}
 				if err != nil {
 					File.WriteErrorLog("http writed Err" + err.Error())
 				}
 			}
 		}
-		_, _ = w.Write([]byte("\n{\"Time\":\"" + time.Now().Format("2006-01-02 15:04") +
-			"\",\"IP\":\"127.0.0.1\", \"Hostname\":\"JH-Api-QCloudGZ3-Patrol\"," +
-			" \"Info\":\"GetPatrolInfo\", \"Status\":true}]"))
 	}
+
+	jsonString = jsonString + "\n{\"Time\":\"" + time.Now().Format("2006-01-02 15:04") +
+		"\",\"IP\":\"0.0.0.0\", \"Hostname\":\"JH-Api-QCloudGZ3-Patrol\"," +
+		"\"Info\":\"AllHitSearch_Patrol_Info=" + approximate + strconv.FormatInt(SearchNumber, 10) + "\", \"Status\":true}]"
+
+	monitorJsons = Global.ReadMonitorJson(jsonString)
+	if err := json.NewEncoder(w).Encode(monitorJsons); err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		File.WriteErrorLog(err.Error())
+	}
+	w.WriteHeader(http.StatusOK)
+	File.WriteInfoLog("Get Patrol info all hit search is " + strconv.FormatInt(SearchNumber, 10) +
+		", from " + getTimeStart.Format("2006-01-02:15:04") +
+		" to " + getTimeEnd.Format("2006-01-02:15:04"))
 }
 
 // 添加nat信息进入数据库
@@ -419,7 +469,7 @@ func ReturnAllNatMonitor(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write([]byte("[{ \"readme\":\"！返回信息并不全面\"},"))
 	// 获取当前日期时间信息
 	pwd := Global.DataFileDir
-	des := pwd + time.Now().Format("2006-01/02") + Global.DataFileName
+	des := pwd + time.Now().Format("2006-01/02/15/04") + Global.DataFileName
 
 	// 根据当前时间作为关键字检索文件
 	key := nowTime.Format("2006-01-02 15:04")
@@ -464,7 +514,7 @@ func ReturnNatMonitor(w http.ResponseWriter, r *http.Request) {
 	time.Sleep(2 * time.Second)
 	// 获取当前时间信息
 	pwd := Global.DataFileDir
-	des := pwd + time.Now().Format("2006-01/02") + Global.DataFileName
+	des := pwd + time.Now().Format("2006-01/02/15/04") + Global.DataFileName
 
 	// 根据当前时间作为关键字检索文件
 	key := nowTime.Format("2006-01-02 15:04")
@@ -537,13 +587,22 @@ func ReturnPoliceMap(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")             //返回数据格式是json
 
 	var jsonfiles []Global.ErrorJson
+	allErrorNum := 0
 
+	// map数据导出为json数据
 	for key, value := range Global.ErrorMap.Data {
-		var json Global.ErrorJson
-		json.Key = key
-		json.Value = value
-		jsonfiles = append(jsonfiles, json)
+		var errJson Global.ErrorJson
+		errJson.Key = key
+		errJson.Value = value
+		allErrorNum += value
+		jsonfiles = append(jsonfiles, errJson)
 	}
+
+	// 最后统计未处理异常次数
+	var errJson Global.ErrorJson
+	errJson.Key = "Get All Patrol Error map Finished, Total Error Number"
+	errJson.Value = allErrorNum
+	jsonfiles = append(jsonfiles, errJson)
 
 	// 返回信息
 	if err := json.NewEncoder(w).Encode(jsonfiles); err != nil {
@@ -553,7 +612,7 @@ func ReturnPoliceMap(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-// 显示报警队列信息
+// 显示主机队列信息
 func ReturnNatHostsMap(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")             //允许访问所有域
 	w.Header().Add("Access-Control-Allow-Headers", "Content-Type") //header的类型
