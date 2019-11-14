@@ -55,6 +55,14 @@ var routes = Routes{
 		ReturnMonitorInfo,
 	},
 
+	// 获取指定日期的指定监控信息值，格式   url?time=年.月.日&key=关键字
+	Route{
+		"GetInfo",
+		"GET",
+		"/monitor/infolist",
+		ReturnMonitorInfoList,
+	},
+
 	// 收集监控数据并保存处理
 	Route{
 		"MonitorCollect",
