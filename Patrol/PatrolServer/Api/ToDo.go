@@ -14,6 +14,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -125,7 +126,8 @@ func ReturnMonitorInfo(w http.ResponseWriter, r *http.Request) {
 	var approximate = "="
 	// 处理时区问题
 	loc, _ := time.LoadLocation("Asia/Shanghai")
-	var data string
+	// 线程等待
+	var goSync sync.WaitGroup
 	jsonString := "["
 
 	// 读取用户输入的时间参数信息
@@ -178,37 +180,39 @@ func ReturnMonitorInfo(w http.ResponseWriter, r *http.Request) {
 			emptyNumber ++
 			continue
 		}
-		des := pwd + tmpTime.Year + "-" + tmpTime.Month + string(os.PathSeparator) + tmpTime.Day +
-			string(os.PathSeparator) + tmpTime.Hour + string(os.PathSeparator) + tmpTime.Minute + Global.DataFileName
-		_, err := os.Stat(des)
-		if err != nil {
-			continue
-		} else {
-			var tmpSearchNumber int64 = 0
-			tmpSearchNumber, data, err = File.SearchWordInFile(des, getGexp, getKey...)
-			if err != nil {
-				File.WriteInfoLog("Find key Err " + err.Error())
-			} else {
-				File.WriteInfoLog("Send File:" + des + ", daytime： " + tmpTime.Print())
-				if SearchNumber <= Global.MaxSearchLen {
-					jsonString = jsonString + data
-				}
-				SearchNumber += tmpSearchNumber
-				if SearchNumber > Global.MaxReturnLen {
-					SearchNumber = SearchNumber / int64(tmpNumber) * int64(len(getTime)-emptyNumber)
-					approximate = "~"
-					break
-				}
-				if err != nil {
-					File.WriteErrorLog("http writed Err" + err.Error())
+		Global.MaxSearchSigLen <- 1
+		if SearchNumber >= Global.MaxReturnLen{
+			SearchNumber = SearchNumber / int64(tmpNumber) * int64(len(getTime)-emptyNumber)
+			approximate = "~"
+			break
+		}
+		goSync.Add(1)
+		goFunc := func(tmpTime Global.DateTimeStyle) {
+			var data string
+			des := pwd + tmpTime.Year + "-" + tmpTime.Month + string(os.PathSeparator) + tmpTime.Day +
+				string(os.PathSeparator) + tmpTime.Hour + string(os.PathSeparator) + tmpTime.Minute + Global.DataFileName
+			_, err := os.Stat(des)
+			if err == nil {
+				var tmpSearchNumber int64 = 0
+				tmpSearchNumber, data, err = File.SearchWordInFile(des, getGexp, getKey...)
+				if err == nil {
+					if SearchNumber <= Global.MaxSearchLen {
+						jsonString = jsonString + data
+					}
+					SearchNumber += tmpSearchNumber
 				}
 			}
+			goSync.Done()
+			<-Global.MaxSearchSigLen
 		}
+		go goFunc(tmpTime)
 	}
+	goSync.Wait()
 
 	jsonString = jsonString + "\n{\"Time\":\"" + time.Now().Format("2006-01-02 15:04") +
 		"\",\"IP\":\"0.0.0.0\", \"Hostname\":\"All-JH-Api-QCloudGZ3-Patrol\"," +
-		"\"Info\":\"AllHitSearch_Patrol_Info" + approximate + strconv.FormatInt(SearchNumber, 10) + "\", \"Status\":true}]"
+		"\"Info\":\"AllHitSearch_Patrol_Info" + approximate +
+		strconv.FormatInt(SearchNumber, 10) + "\", \"Status\":true}]"
 
 	monitorJsons = Global.ReadMonitorJson(jsonString)
 	if err := json.NewEncoder(w).Encode(monitorJsons); err != nil {
@@ -316,11 +320,16 @@ func ReturnMonitorInfoList(w http.ResponseWriter, r *http.Request) {
 				File.WriteInfoLog("Find key Err " + err.Error())
 			} else {
 				File.WriteInfoLog("Send File:" + des + ", daytime： " + tmpTime.Print())
-				if SearchNumber <= Global.MaxSearchLen*3 {
+				if SearchNumber <= Global.MaxSearchLen*10 {
 					jsonString = jsonString + data
 				}
-				SearchNumber += tmpSearchNumber
-				if SearchNumber > Global.MaxSearchLen*3 {
+				if tmpSearchNumber > Global.MaxSearchLen {
+					SearchNumber += Global.MaxSearchLen
+				} else {
+					SearchNumber += tmpSearchNumber
+				}
+
+				if SearchNumber > Global.MaxSearchLen*10 {
 					break
 				}
 				if err != nil {
@@ -372,7 +381,9 @@ func ReturnMonitorInfoList(w http.ResponseWriter, r *http.Request) {
 		j := returnJson[i]
 		var isGetValue = false
 		for key, value := range j.value {
-			returnFistJson = append(returnFistJson, key)
+			if len(returnFistJson) < 10 {
+				returnFistJson = append(returnFistJson, key)
+			}
 			if ! isGetValue {
 				returnJsonString = returnJsonString + ", { \"Time\": \"" + i + "\", "
 				isGetValue = true

@@ -5,6 +5,8 @@ import (
 	"errors"
 	"log"
 	"os"
+	"runtime"
+	"strconv"
 	"time"
 )
 
@@ -53,5 +55,5 @@ func WriteErrorLog(message string) {
 
 func WriteInfoLog(message string) {
 	dir, file := Global.UpdateLog()
-	WriteLog("Info\t"+message, dir, file)
+	WriteLog("Info\t"+message+"\tgoroutine: " + strconv.Itoa(runtime.NumGoroutine()), dir, file)
 }

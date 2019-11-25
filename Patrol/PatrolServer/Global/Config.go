@@ -19,6 +19,7 @@ var (
 	ErrorMax               = 3                              // 最多报警次数
 	MaxSearchLen     int64 = 300                            // 搜索文件最大次数
 	MaxReturnLen     int64 = 1000000                        // 查询预估临界值
+	MaxSearchSigLen        = make(chan int, 15)             // 查询并发线程数
 	ListenSig              = make(chan int)                 // 监听后台阻塞信号
 	ListenPublicSig        = make(chan int)                 // 监听后台公共端口阻塞信号
 	CocoUrl                = "http://10.4.0.4:8666/monitor" // coco的端口
