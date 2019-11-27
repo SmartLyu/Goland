@@ -1,10 +1,8 @@
 package main
-
 import (
-	"./Global"
 	"./Api"
+	"./Global"
 )
-
 func main(){
 	go Api.StartApi(Global.ApiPost)
 	<-Global.ListenSig
