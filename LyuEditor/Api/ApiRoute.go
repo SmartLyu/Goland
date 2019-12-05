@@ -39,4 +39,11 @@ var routes = Routes{
 		"/gethtml/file",
 		GetHtmlFile,
 	},
+	// 获取成品url
+	Route{
+		"GetUrl",
+		"POST",
+		"/gethtml/list",
+		GetHtmlList,
+	},
 }

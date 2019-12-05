@@ -128,6 +128,9 @@ func ReturnMonitorInfo(w http.ResponseWriter, r *http.Request) {
 	loc, _ := time.LoadLocation("Asia/Shanghai")
 	// 线程等待
 	var goSync sync.WaitGroup
+	// 修改锁定
+	var Numberlock sync.Mutex
+	var Datalock sync.Mutex
 	jsonString := "["
 
 	// 读取用户输入的时间参数信息
@@ -197,9 +200,13 @@ func ReturnMonitorInfo(w http.ResponseWriter, r *http.Request) {
 				tmpSearchNumber, data, err = File.SearchWordInFile(des, getGexp, getKey...)
 				if err == nil {
 					if SearchNumber <= Global.MaxSearchLen {
+						Datalock.Lock()
 						jsonString = jsonString + data
+						Datalock.Unlock()
 					}
+					Numberlock.Lock()
 					SearchNumber += tmpSearchNumber
+					Numberlock.Unlock()
 				}
 			}
 			goSync.Done()

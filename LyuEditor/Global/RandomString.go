@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// 生成随机字符，作为html命名
 func RandStringRunes() string {
 	rand.Seed(time.Now().UnixNano())
 	b := make([]rune, letterLenth)
