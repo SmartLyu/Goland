@@ -1,0 +1,21 @@
+{
+  "tasks": [
+    "启动游戏",
+    "登录",
+    "加载服务器成功",
+    "进入游戏",
+    "打开充值界面",
+    "充值行为"
+  ],
+  "successTip": "成功",
+  "project": "测试",
+  "place": "国内",
+  "shell": "docker",
+  "args": " -t ",
+  "task1": 1,
+  "taskSuccessNumber1": 1,
+  "task2": 10,
+  "taskSuccessNumber2": 8,
+  "timeOut": 60,
+  "checkTime": 10
+}
