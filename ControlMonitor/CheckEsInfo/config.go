@@ -14,10 +14,11 @@ var (
 )
 
 type taskConfigJSON struct {
+	Type          string   `json:"type"`
 	AgentUuid     string   `json:"agentUuid"`
 	Tasks         []string `json:"tasks"`
 	Success       string   `json:"success"`
-	TaskId        string   `json:"taskId"`
+	TaskId        []string `json:"taskId"`
 	AllNumber     int      `json:"allNumber"`
 	IsMonitor     bool     `json:"isMonitor"`
 	SuccessNumber int      `json:"successNumber"`

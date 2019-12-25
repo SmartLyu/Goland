@@ -1,6 +1,7 @@
 package CheckEsInfo
 
 import (
+	"../Log"
 	"bytes"
 	"encoding/json"
 	"errors"
@@ -11,7 +12,7 @@ import (
 )
 
 func httpJSON(url string, httpType string, jsonbyte []byte) (string, http.Header, error) {
-	fmt.Println("Start " + httpType + " " + url + " : " + string(jsonbyte))
+	Log.DebugLog.Println("Start " + httpType + " " + url + " : " + string(jsonbyte))
 	req, err := http.NewRequest(httpType, url, bytes.NewBuffer(jsonbyte))
 	if err != nil {
 		return "", http.Header{}, err

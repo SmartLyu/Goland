@@ -39,7 +39,7 @@ func PostMonitorInfo(w http.ResponseWriter, r *http.Request) {
 		if err := json.NewEncoder(w).Encode(err); err != nil {
 			File.WriteErrorLog(err.Error())
 		}
-		if ! jsonfile.Exist() {
+		if !jsonfile.Exist() {
 			File.WriteInfoLog("Error: has got empty json data")
 		}
 		return
@@ -47,7 +47,7 @@ func PostMonitorInfo(w http.ResponseWriter, r *http.Request) {
 
 	// 添加数据
 	go func() {
-		if err := File.WriteFile(Global.ReadJson(jsonfile)); err != nil {
+		if err := File.WriteFile(Global.ReadJson(jsonfile), jsonfile.Time); err != nil {
 			File.WriteErrorLog("write info " + err.Error())
 		}
 		CallPolice.Judge(jsonfile)
@@ -167,7 +167,7 @@ func ReturnMonitorInfo(w http.ResponseWriter, r *http.Request) {
 		if r.Form.Get("key"+strconv.Itoa(keyTmpNumber+1)) == "" {
 			break
 		}
-		keyTmpNumber ++
+		keyTmpNumber++
 		if keyTmpNumber >= 10000 {
 			break
 		}
@@ -179,12 +179,12 @@ func ReturnMonitorInfo(w http.ResponseWriter, r *http.Request) {
 	// 读取监控存储的文件
 	// 按天循环获取监控信息
 	for tmpNumber, tmpTime := range getTime {
-		if ! tmpTime.Exist() {
-			emptyNumber ++
+		if !tmpTime.Exist() {
+			emptyNumber++
 			continue
 		}
 		Global.MaxSearchSigLen <- 1
-		if SearchNumber >= Global.MaxReturnLen{
+		if SearchNumber >= Global.MaxReturnLen {
 			SearchNumber = SearchNumber / int64(tmpNumber) * int64(len(getTime)-emptyNumber)
 			approximate = "~"
 			break
@@ -299,7 +299,7 @@ func ReturnMonitorInfoList(w http.ResponseWriter, r *http.Request) {
 		if r.Form.Get("key"+strconv.Itoa(keyTmpNumber+1)) == "" {
 			break
 		}
-		keyTmpNumber ++
+		keyTmpNumber++
 		if keyTmpNumber >= 10000 {
 			break
 		}
@@ -311,8 +311,8 @@ func ReturnMonitorInfoList(w http.ResponseWriter, r *http.Request) {
 	// 读取监控存储的文件
 	// 按天循环获取监控信息
 	for _, tmpTime := range getTime {
-		if ! tmpTime.Exist() {
-			emptyNumber ++
+		if !tmpTime.Exist() {
+			emptyNumber++
 			continue
 		}
 		des := pwd + tmpTime.Year + "-" + tmpTime.Month + string(os.PathSeparator) + tmpTime.Day +
@@ -391,7 +391,7 @@ func ReturnMonitorInfoList(w http.ResponseWriter, r *http.Request) {
 			if len(returnFistJson) < 10 {
 				returnFistJson = append(returnFistJson, key)
 			}
-			if ! isGetValue {
+			if !isGetValue {
 				returnJsonString = returnJsonString + ", { \"Time\": \"" + i + "\", "
 				isGetValue = true
 			}
@@ -454,7 +454,7 @@ func AddNatMonitor(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 添加数据
-	if ! Mysql.InsertNat(jsonfile) {
+	if !Mysql.InsertNat(jsonfile) {
 		w.WriteHeader(http.StatusNotFound)
 	} else {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -498,7 +498,7 @@ func DeleteNatMonitor(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 删除数据
-	if ! Mysql.DeleteNat(jsonfile) {
+	if !Mysql.DeleteNat(jsonfile) {
 		w.WriteHeader(http.StatusNotFound)
 	} else {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -542,12 +542,12 @@ func UpdataNatMonitor(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 重新录入数据
-	if ! Mysql.DeleteNat(jsonfile) {
+	if !Mysql.DeleteNat(jsonfile) {
 		w.WriteHeader(http.StatusNotFound)
 	} else {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusCreated)
-		if ! Mysql.InsertNat(jsonfile) {
+		if !Mysql.InsertNat(jsonfile) {
 			w.WriteHeader(http.StatusNotFound)
 		} else {
 			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -612,7 +612,7 @@ func ReturnMonitorShell(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		File.WriteErrorLog("File Not Exit " + des)
 		http.NotFoundHandler().ServeHTTP(w, r)
-	} else if (desStat.IsDir()) {
+	} else if desStat.IsDir() {
 		File.WriteErrorLog("File Is Dir" + des)
 		http.NotFoundHandler().ServeHTTP(w, r)
 	} else {
@@ -642,7 +642,7 @@ func ReturnNatShell(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		File.WriteErrorLog("File Not Exit " + des)
 		http.NotFoundHandler().ServeHTTP(w, r)
-	} else if (desStat.IsDir()) {
+	} else if desStat.IsDir() {
 		File.WriteErrorLog("File Is Dir" + des)
 		http.NotFoundHandler().ServeHTTP(w, r)
 	} else {
@@ -755,19 +755,19 @@ func ChangPoliceStatus(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")             //返回数据格式是json
 
 	if Global.IsPolice {
-		CallPolice.CallMessage(time.Now().Format("2006.01.02 15:04") + "\n  现在进入维护模式，暂停报警功能")
+		CallPolice.CallMessage("  现在进入维护模式，暂停报警功能")
 		Global.IsPolice = false
 		go func() {
 			time.Sleep(time.Hour * 6)
-			if ! Global.IsPolice {
+			if !Global.IsPolice {
 				Global.IsPolice = true
-				CallPolice.CallMessage(time.Now().Format("2006.01.02 15:04") + "\n  现在结束维护功能，开启报警功能")
+				CallPolice.CallMessage("  现在结束维护功能，开启报警功能")
 			}
 		}()
 
 	} else {
 		Global.IsPolice = true
-		CallPolice.CallMessage(time.Now().Format("2006.01.02 15:04") + "\n  现在结束维护功能，开启报警功能")
+		CallPolice.CallMessage("  现在结束维护功能，开启报警功能")
 	}
 
 	// 返回信息

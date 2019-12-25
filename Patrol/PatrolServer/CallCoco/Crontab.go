@@ -75,14 +75,9 @@ func CrontabToCheckHosts() {
 		for _, i := range ht {
 			Mysql.DeleteHosts(i)
 			pwd := Global.DataFileDir
-			des := pwd + time.Now().Add(-time.Minute * 1).Format("2006-01/02/15/04") + Global.DataFileName
 
+			des := pwd + time.Now().Format("2006-01/02/15/04") + Global.DataFileName
 			_, err := File.FindWorkInFile(des, i.IP, "survive", "true")
-
-			if err == nil {
-				continue
-			}
-
 			if err == nil {
 				continue
 			}
@@ -95,12 +90,30 @@ func CrontabToCheckHosts() {
 				Status:   false,
 			}
 
-			CallPolice.Judge(jsonfile)
-
 			// 添加数据
-			if err := File.WriteFile(Global.ReadJson(jsonfile)); err != nil {
+			if err := File.WriteFile(Global.ReadJson(jsonfile), jsonfile.Time); err != nil {
 				File.WriteErrorLog(err.Error())
 			}
+
+			des = pwd + time.Now().Add(-time.Minute*3).Format("2006-01/02/15/04") + Global.DataFileName
+			_, err = File.FindWorkInFile(des, i.IP, "survive", "true")
+			if err == nil {
+				continue
+			}
+
+			des = pwd + time.Now().Add(-time.Minute*2).Format("2006-01/02/15/04") + Global.DataFileName
+			_, err = File.FindWorkInFile(des, i.IP, "survive", "true")
+			if err == nil {
+				continue
+			}
+
+			des = pwd + time.Now().Add(-time.Minute*1).Format("2006-01/02/15/04") + Global.DataFileName
+			_, err = File.FindWorkInFile(des, i.IP, "survive", "true")
+			if err == nil {
+				continue
+			}
+
+			CallPolice.Judge(jsonfile)
 		}
 	})
 

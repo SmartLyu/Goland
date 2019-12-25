@@ -1,14 +1,14 @@
 package DispatchApi
 
 import (
+	"../Log"
 	"crypto/md5"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"time"
 )
 
-func StartTask(number int, timeOut int, project string, commod string, args string) (string, error) {
+func StartTask(number int, timeOut int, project string, commod string, args string, url string) (string, error) {
 	taskName = ReturnTaskName()
 	ctaskJson = createTaskJson{
 		Name:    taskName,
@@ -81,7 +81,7 @@ func StartTask(number int, timeOut int, project string, commod string, args stri
 		if err != nil {
 			return "", err
 		}
-		fmt.Println(jobJsonstr)
+		Log.DebugLog.Println(jobJsonstr)
 		_, err = readReturnCreateJobJsonString(jobJsonstr)
 		if err != nil {
 			return "", err
@@ -120,10 +120,6 @@ func StartTask(number int, timeOut int, project string, commod string, args stri
 		return "", err
 	}
 
-	SuccessFulOut("Success Get task UUid: " + TaskUuid + ", job UUid: " + jobUuid)
+	Log.InfoLog.Println("Success Get task UUid: " + TaskUuid + ", job UUid: " + jobUuid)
 	return TaskUuid, nil
-}
-
-func SuccessFulOut(msg string) {
-	fmt.Printf("%c[%d;%d;%dm%s%c[0m\n", 0x1B, 1, 0, 32, time.Now().Format("2006-01-02 15:04:05 +0800 CST")+" Info "+msg, 0x1B)
 }

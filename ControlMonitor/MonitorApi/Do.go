@@ -1,12 +1,11 @@
 package MonitorApi
 
 import (
-	"fmt"
-	"time"
+	"../Log"
 )
 
 // 监控2.0使用的模板
-func DoDefault(projectst string, placestr string) (string, string, error) {
+func DoDefault(projectst string, placestr string, isMaintain bool) (string, string, error) {
 	projectName = projectst
 	place = placestr
 
@@ -21,7 +20,7 @@ func DoDefault(projectst string, placestr string) (string, string, error) {
 	if err != nil {
 		return "", "", err
 	}
-	SuccessFulOut("Successfully get project \"" + projectName + "\" uuid: " + project)
+	Log.InfoLog.Println("Successfully get project \"" + projectName + "\" uuid: " + project)
 
 	code, agent, err := GetAgents(project, AgentsName)
 	if err != nil {
@@ -33,7 +32,16 @@ func DoDefault(projectst string, placestr string) (string, string, error) {
 			return "", "", err
 		}
 	}
-	SuccessFulOut("Successfully get agent \"" + AgentsName + "\" uuid: " + agent)
+
+	err = PutAgents(isMaintain, agent)
+	if err != nil {
+		return "", "", err
+	}
+	Log.InfoLog.Println("Successfully get agent \"" + AgentsName + "\" uuid: " + agent)
+
+	if isMaintain {
+		return project, agent, nil
+	}
 
 	strategy = AddStrategyJson{
 		Smetric:          "",
@@ -43,7 +51,7 @@ func DoDefault(projectst string, placestr string) (string, string, error) {
 		Snote:            "同一策略模拟失败后，触发30份同策略行为模拟，失败率达到20%",
 		Sagent:           agent,
 		Snodata:          false,
-		Snodata_value:    0,
+		Snodata_value:    1,
 		Snodata_interval: 1800,
 		Sproject:         project,
 	}
@@ -73,7 +81,7 @@ func DoDefault(projectst string, placestr string) (string, string, error) {
 				return "", "", err
 			}
 		}
-		SuccessFulOut("Successfully get strategy metric \"" + strategy.Smetric + "\" uuid: " + strategyUUid)
+		Log.DebugLog.Println("Successfully get strategy metric \"" + strategy.Smetric + "\" uuid: " + strategyUUid)
 	}
 
 	rules := [...]string{
@@ -91,7 +99,7 @@ func DoDefault(projectst string, placestr string) (string, string, error) {
 		if err != nil {
 			return "", "", err
 		}
-		SuccessFulOut("Successfully get rule templete \"" + ruletpl + "\" uuid: " + ruleTmp)
+		Log.DebugLog.Println("Successfully get rule templete \"" + ruletpl + "\" uuid: " + ruleTmp)
 
 		code, rule, err := GetRule(ruleName, project)
 		if err != nil {
@@ -105,16 +113,8 @@ func DoDefault(projectst string, placestr string) (string, string, error) {
 				return "", "", err
 			}
 		}
-		SuccessFulOut("Successfully get rule \"" + ruleName + "\" uuid: " + rule)
+		Log.DebugLog.Println("Successfully get rule \"" + ruleName + "\" uuid: " + rule)
 	}
 
 	return project, agent, nil
-}
-
-func SuccessFulOut(msg string) {
-	fmt.Printf("%c[%d;%d;%dm%s%c[0m\n", 0x1B, 1, 0, 32, time.Now().Format("2006-01-02 15:04:05 +0800 CST")+" Info "+msg, 0x1B)
-}
-
-func ChangeOut(msg ...string) {
-	fmt.Printf("%c[%d;%d;%dm%s%c[0m\n", 0x1B, 1, 0, 33, msg, 0x1B)
 }

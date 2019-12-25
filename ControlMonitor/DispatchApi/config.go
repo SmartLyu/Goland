@@ -1,11 +1,11 @@
 package DispatchApi
 
 import (
+	"../Log"
 	"encoding/json"
 	"errors"
 	"fmt"
 	uuid "github.com/satori/go.uuid"
-	"time"
 )
 
 var (
@@ -60,7 +60,7 @@ type startTaskJson struct {
 }
 
 func readReturnCreateTaskJsonString(jsonData string) (uuid string, errReturn error) {
-	fmt.Println(time.Now().Format("2006-01-02 15:04:05 +0800 CST")+" ", "Return Json:", jsonData)
+	Log.DebugLog.Println("Return Json:" + jsonData)
 	var v interface{}
 	errReturn = nil
 	if err := json.Unmarshal([]byte(jsonData), &v); err != nil {
@@ -82,7 +82,7 @@ func readReturnCreateTaskJsonString(jsonData string) (uuid string, errReturn err
 }
 
 func readReturnCreateJobJsonString(jsonData string) (uuid string, errReturn error) {
-	fmt.Println(time.Now().Format("2006-01-02 15:04:05 +0800 CST")+" ", "Return Json:", jsonData)
+	Log.DebugLog.Println("Return Json:" + jsonData)
 	var v interface{}
 	errReturn = nil
 	if err := json.Unmarshal([]byte(jsonData), &v); err != nil {

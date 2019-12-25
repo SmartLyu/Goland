@@ -1,6 +1,7 @@
 package MonitorApi
 
 import (
+	"../Log"
 	"encoding/json"
 	"errors"
 	"strconv"
@@ -16,7 +17,7 @@ func Monitor(agent string, metric string, value float32) error {
 		Dtimestamp: time.Now().Unix(),
 	}
 	js, _ := json.Marshal(&addJson)
-	ChangeOut("Add Agents: ", string(js))
+	Log.DebugLog.Println("Add Agents: " + string(js))
 
 	var body string
 	var err error
@@ -24,7 +25,7 @@ func Monitor(agent string, metric string, value float32) error {
 		return errors.New(err.Error())
 	}
 	if ReadAddDataJsonString(body) {
-		SuccessFulOut("Add monitor data successfully, agent: " + agent + ", metric: " + metric + ", value: " +
+		Log.InfoLog.Println("Add monitor data successfully, agent: " + agent + ", metric: " + metric + ", value: " +
 			strconv.FormatFloat(float64(value), 'f', 0, 32))
 	}
 	return nil

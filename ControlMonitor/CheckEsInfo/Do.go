@@ -1,10 +1,10 @@
 package CheckEsInfo
 
 import (
+	"../Log"
 	"../MonitorApi"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -19,28 +19,30 @@ func GetTaskInfo(taskJson []byte) (bool, error) {
 	if err != nil {
 		return false, errors.New("配置文件格式错误: " + err.Error())
 	}
+	switch Taskconfig.Type {
+	case "test":
+		return DoTestGetTaskInfo()
+	case "monitor":
+		return DoMonitorGetTaskInfo()
+	}
+	return false, errors.New("Type配置信息导入异常")
+}
+
+func DoTestGetTaskInfo() (bool, error) {
 	var getEsInfo GetESInfoJSON
 	var sleepTimes = Taskconfig.TimeOut/Taskconfig.CheckTime + 1
 
 	for i := 1; i <= sleepTimes; i++ {
 		time.Sleep(time.Duration(Taskconfig.CheckTime) * time.Second)
-		SuccessFulOut("Has wait " + strconv.Itoa(Taskconfig.CheckTime*i) + "s, and start " + strconv.Itoa(i) + " times to get log info")
-		err = GetInfo(getEsInfo.BuildJSON(Taskconfig.TaskId))
-		if err != nil {
-			return false, errors.New("获取Es数据错误: " + err.Error())
-		}
-		if i == sleepTimes {
-			err = CheckSuccessNumber(true)
-		} else {
-			err = CheckSuccessNumber(false)
+		Log.DebugLog.Println("Has wait " + strconv.Itoa(Taskconfig.CheckTime*i) + "s, and start " + strconv.Itoa(i) + " times to get log info")
+		for _, i := range Taskconfig.TaskId {
+			err := GetInfo(getEsInfo.BuildJSON(i))
+			if err != nil {
+				return false, errors.New("获取Es数据错误: " + err.Error())
+			}
 		}
 
-		if err != nil {
-			return false, errors.New("读取Es数据错误: " + err.Error())
-		}
-		if finishNumber == len(Taskconfig.Tasks) {
-			break
-		}
+		ReturnAllInfo()
 	}
 
 	var returnBool = true
@@ -50,8 +52,58 @@ func GetTaskInfo(taskJson []byte) (bool, error) {
 	return returnBool, nil
 }
 
+func DoMonitorGetTaskInfo() (bool, error) {
+	var getEsInfo GetESInfoJSON
+	var sleepTimes = Taskconfig.TimeOut/Taskconfig.CheckTime + 1
+	var status = true
+
+	for i := 1; i <= sleepTimes; i++ {
+		time.Sleep(time.Duration(Taskconfig.CheckTime) * time.Second)
+		Log.DebugLog.Println("Has wait " + strconv.Itoa(Taskconfig.CheckTime*i) +
+			"s, and start " + strconv.Itoa(i) + " times to get log info")
+		err := GetInfo(getEsInfo.BuildJSON(Taskconfig.TaskId[0]))
+		if err != nil {
+			return false, errors.New("获取Es数据错误: " + err.Error())
+		}
+		if i == sleepTimes {
+			status, err = CheckSuccessNumber(true)
+		} else {
+			status, err = CheckSuccessNumber(false)
+		}
+
+		if status == false {
+			return false, nil
+		}
+
+		if err != nil {
+			return false, errors.New("读取Es数据错误: " + err.Error())
+		}
+
+		if finishNumber == len(Taskconfig.Tasks) {
+			break
+		}
+	}
+
+	for _, i := range isMonitor {
+		status = status && i
+	}
+
+	if !status {
+		Log.ErrorLog.Println(Taskconfig.TaskId[0] + " is error")
+		for i, j := range allInfo {
+			var mapstr = i + ": [ "
+			for _, i := range Taskconfig.Tasks {
+				mapstr = mapstr + i + ":" + j.task[i] + " "
+			}
+			mapstr = mapstr + " ]"
+			Log.ErrorLog.Println(Taskconfig.TaskId[0] + ": " + mapstr)
+		}
+	}
+	return status, nil
+}
+
 // CheckSuccessNumber 返回状态信息，ture代表超时算不正常，false代表超时算正常
-func CheckSuccessNumber(status bool) error {
+func CheckSuccessNumber(status bool) (bool, error) {
 	var Successcheck = make(map[string]int)
 	var Errorcheck = make(map[string]int)
 	finishNumber = 0
@@ -60,7 +112,7 @@ func CheckSuccessNumber(status bool) error {
 		Errorcheck[i] = 0
 	}
 	for i, j := range allInfo {
-		var mapstr = time.Now().Format("2006-01-02 15:04:05 +0800 CST") + " " + i + ": [ "
+		var mapstr = i + ": [ "
 		for _, i := range Taskconfig.Tasks {
 			mapstr = mapstr + i + ":" + j.task[i] + " "
 		}
@@ -79,7 +131,7 @@ func CheckSuccessNumber(status bool) error {
 				continue
 			}
 		}
-		fmt.Println(mapstr)
+		Log.DebugLog.Println(Taskconfig.TaskId[0] + ": " + mapstr)
 	}
 
 	for _, i := range Taskconfig.Tasks {
@@ -91,7 +143,7 @@ func CheckSuccessNumber(status bool) error {
 		if Successcheck[i] >= Taskconfig.SuccessNumber {
 			err := MonitorApi.Monitor(Taskconfig.AgentUuid, i, 0)
 			if err != nil {
-				return err
+				return true, err
 			}
 			isMonitor[i] = true
 			finishNumber++
@@ -101,8 +153,9 @@ func CheckSuccessNumber(status bool) error {
 			if Taskconfig.IsMonitor {
 				err := MonitorApi.Monitor(Taskconfig.AgentUuid, i, 1)
 				if err != nil {
-					return err
+					return true, err
 				}
+				return false, nil
 			}
 			isMonitor[i] = false
 			finishNumber++
@@ -112,17 +165,14 @@ func CheckSuccessNumber(status bool) error {
 			if Taskconfig.IsMonitor {
 				err := MonitorApi.Monitor(Taskconfig.AgentUuid, i, 1)
 				if err != nil {
-					return err
+					return true, err
 				}
+				return false, nil
 			}
 			isMonitor[i] = false
 			finishNumber++
 			continue
 		}
 	}
-	return nil
-}
-
-func SuccessFulOut(msg string) {
-	fmt.Printf("%c[%d;%d;%dm%s%c[0m\n", 0x1B, 1, 0, 32, time.Now().Format("2006-01-02 15:04:05 +0800 CST")+" Info "+msg, 0x1B)
+	return true, nil
 }

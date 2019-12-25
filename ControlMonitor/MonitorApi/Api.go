@@ -1,8 +1,10 @@
 package MonitorApi
 
 import (
+	"../Log"
 	"encoding/json"
 	"errors"
+	"time"
 )
 
 func GetProject(name string) (string, error) {
@@ -56,7 +58,7 @@ func AddAgents(projectUuid string, name string) (string, error) {
 		projectUuid,
 	}
 	js, _ := json.Marshal(&addJson)
-	ChangeOut("Add Agents: ", string(js))
+	Log.DebugLog.Println("Add Agents: " + string(js))
 
 	var body string
 	var err error
@@ -70,9 +72,39 @@ func AddAgents(projectUuid string, name string) (string, error) {
 	return datamap, nil
 }
 
+func PutAgents(isMaintain bool, agentId string) error {
+	var putJson PutAgentJson
+	if isMaintain {
+		putJson = PutAgentJson{
+			"0001-01-01T00:00:00Z",
+			time.Now().Add(1 * time.Hour).Format("2006-01-02T15:04:05Z"),
+		}
+	} else {
+		putJson = PutAgentJson{
+			"0001-01-01T00:00:00Z",
+			"0001-01-01T00:00:00Z",
+		}
+	}
+
+	js, _ := json.Marshal(&putJson)
+	Log.DebugLog.Println("PUT Agents: " + string(js))
+
+	var body string
+	var err error
+	if body, _, err = httpTokenJson("http://"+URL+"/v1/agents/"+agentId,
+		"PUT", js); err != nil {
+		return err
+	}
+	if ReadAddDataJsonString(body) {
+		return nil
+	} else {
+		return errors.New("Put change maintain time errror")
+	}
+}
+
 func AddStrategy(addJson AddStrategyJson) (string, error) {
 	js, _ := json.Marshal(&addJson)
-	ChangeOut("Add Strategy: ", string(js))
+	Log.DebugLog.Println("Add Strategy: " + string(js))
 
 	var body string
 	var err error
@@ -136,7 +168,7 @@ func AddRule(ruletpl string, rule_name string, projects []string) (string, error
 		projects,
 	}
 	js, _ := json.Marshal(&addJson)
-	ChangeOut("Add Rule: ", string(js))
+	Log.DebugLog.Println("Add Rule: " + string(js))
 
 	var body string
 	var err error

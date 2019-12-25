@@ -1,4 +1,7 @@
 {
+  "url": "http://diaodu.ijunhai.com:8080",
+  "type": "monitor",
+  "logDir": "/work/logs/control",
   "tasks": [
     "启动游戏",
     "登录",
@@ -12,10 +15,13 @@
   "place": "国内",
   "shell": "docker",
   "args": " -t ",
+  "isMaintain": false,
   "task1": 1,
   "taskSuccessNumber1": 1,
   "task2": 10,
   "taskSuccessNumber2": 8,
   "timeOut": 60,
-  "checkTime": 10
+  "checkTime": 10,
+  "testCycleTimes": 10,
+  "testCycleWait": 60
 }

@@ -10,11 +10,11 @@ import (
 var fileLock sync.Mutex
 
 // 记录监控信息
-func WriteFile(message string) error {
+func WriteFile(message string, logTime string) error {
 
 	fileLock.Lock()
 	defer fileLock.Unlock()
-	datadir, datafile := Global.UpdateFile()
+	datadir, datafile := Global.UpdateFile(logTime)
 
 	// 判断目录是否存在，不存在需要创建
 	_, err := os.Stat(datadir)

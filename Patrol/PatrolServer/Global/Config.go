@@ -16,10 +16,10 @@ var (
 	NatShellFile           = "/work/sh/NatPatrol.sh"        // Nat使用的巡查脚本存放位置
 	ErrorMap               = NewErrorMapType()              // 存储报警信息至内存
 	NatHostsMap            = NewNatHostsMapType()           // 存储Nat机器中子服务器信息至内存
-	ErrorMax               = 3                              // 最多报警次数
+	ErrorMax               = 2                              // 最多报警次数
 	MaxSearchLen     int64 = 300                            // 搜索文件最大次数
 	MaxReturnLen     int64 = 1000000                        // 查询预估临界值
-	MaxSearchSigLen        = make(chan int, 15)             // 查询并发线程数
+	MaxSearchSigLen        = make(chan int, 30)             // 查询并发线程数
 	ListenSig              = make(chan int)                 // 监听后台阻塞信号
 	ListenPublicSig        = make(chan int)                 // 监听后台公共端口阻塞信号
 	CocoUrl                = "http://10.4.0.4:8666/monitor" // coco的端口
@@ -39,7 +39,12 @@ func UpdateAcessLog() (string, string) {
 }
 
 // 自动分隔巡查信息
-func UpdateFile() (string, string) {
-	return DataFileDir + time.Now().Format("2006-01/02/15") + "/",
-		DataFileDir + time.Now().Format("2006-01/02/15/04") + DataFileName
+func UpdateFile(infoTime string) (string, string) {
+	getTime, err := time.Parse("2006-01-02 15:04", infoTime)
+	if err != nil {
+		getTime = time.Now()
+	}
+
+	return DataFileDir + getTime.Format("2006-01/02/15") + "/",
+		DataFileDir + getTime.Format("2006-01/02/15/04") + DataFileName
 }

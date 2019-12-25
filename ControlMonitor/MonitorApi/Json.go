@@ -1,10 +1,10 @@
 package MonitorApi
 
 import (
+	"../Log"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"time"
 )
 
 type AddProjectJson struct {
@@ -23,6 +23,11 @@ type AddStrategyJson struct {
 	Snodata_value    int     `json:"nodata_value"`
 	Snodata_interval int     `json:"nodata_interval"`
 	Sproject         string  `json:"project"`
+}
+
+type PutAgentJson struct {
+	MaintainBegin string `json:"maintain_begin"`
+	MaintainEnd   string `json:"maintain_end"`
 }
 
 type PostDataJson struct {
@@ -49,7 +54,7 @@ type ReturnDeleteRole struct {
 }
 
 func ReadUUidJsonString(jsonData string) (code string, dataString []string, errReturn error) {
-	fmt.Println(time.Now().Format("2006-01-02 15:04:05 +0800 CST")+" ", "Return Json:", jsonData)
+	Log.DebugLog.Println("Return Json:" + jsonData)
 	var v interface{}
 	errReturn = nil
 	if err := json.Unmarshal([]byte(jsonData), &v); err != nil {
@@ -79,7 +84,7 @@ func ReadUUidJsonString(jsonData string) (code string, dataString []string, errR
 }
 
 func ReadAddRuleJsonString(jsonData string) (dataString string, errReturn error) {
-	fmt.Println(time.Now().Format("2006-01-02 15:04:05 +0800 CST")+" ", "Return Json:", jsonData)
+	Log.DebugLog.Println("Return Json:" + jsonData)
 	var v interface{}
 	errReturn = nil
 	if err := json.Unmarshal([]byte(jsonData), &v); err != nil {
@@ -104,7 +109,7 @@ func ReadAddRuleJsonString(jsonData string) (dataString string, errReturn error)
 }
 
 func ReadAddAgentsJsonString(jsonData string) (code string, dataString string, errReturn error) {
-	fmt.Println(time.Now().Format("2006-01-02 15:04:05 +0800 CST")+" ", "Return Json:", jsonData)
+	Log.DebugLog.Println("Return Json:" + jsonData)
 	var v interface{}
 	errReturn = nil
 	if err := json.Unmarshal([]byte(jsonData), &v); err != nil {
@@ -124,7 +129,7 @@ func ReadAddAgentsJsonString(jsonData string) (code string, dataString string, e
 }
 
 func ReadAddDataJsonString(jsonData string) bool {
-	fmt.Println(time.Now().Format("2006-01-02 15:04:05 +0800 CST")+" ", "Return Json:", jsonData)
+	Log.DebugLog.Println("Return Json:" + jsonData)
 	var v interface{}
 	if err := json.Unmarshal([]byte(jsonData), &v); err != nil {
 		return false

@@ -13,6 +13,5 @@ func Logger(inner http.Handler, name string) http.Handler {
 		inner.ServeHTTP(w, r)
 
 		File.WriteAccessLog(r.Method + "\t" + r.RequestURI + "\t" + name + "\t" + time.Since(start).String())
-
 	})
 }
