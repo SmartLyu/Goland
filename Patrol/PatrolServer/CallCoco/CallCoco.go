@@ -1,29 +1,55 @@
 package CallCoco
 
 import (
+	"../CallPolice"
 	"../File"
 	"../Global"
 	"../Mysql"
 	"strconv"
+	"time"
 )
 
 func CallCoco(hostname string, ip string, port string) {
 	err := httpPostJson(ip, port)
 	if err == nil {
-		File.WriteInfoLog("call coco to connect " + ip)
+		jsonfile := Global.MonitorJson{
+			Time:     time.Now().Format("2006-01-02 15:04"),
+			IP:       "123.207.233.139-JH-Bak-QCloudGZ3-Nat=}10.4.0.17",
+			Hostname: "PatrolMessage",
+			Info:     "callCoco-" + hostname + "-" + ip,
+			Status:   true,
+		}
+		CallPolice.Judge(jsonfile)
+		if err := File.WriteFile(Global.ReadJson(jsonfile), jsonfile.Time); err != nil {
+			Global.ErrorLog.Println("write info " + err.Error())
+		}
 		return
 	} else {
 		err := httpPostJson(ip, port)
 		if err != nil {
-			_, file := Global.UpdateLog()
-			_, errf := File.FindWorkInFile(file, "请求 coco 连接 nat", hostname+"-"+ip, " 失败！")
-			if errf == nil {
-				File.WriteErrorLog("Error\t" + "请求 coco 连接 nat： " + hostname +
-					"-" + ip + " 失败！具体异常为：error " + err.Error())
+			jsonfile := Global.MonitorJson{
+				Time:     time.Now().Format("2006-01-02 15:04"),
+				IP:       "123.207.233.139-JH-Bak-QCloudGZ3-Nat=}10.4.0.17",
+				Hostname: "PatrolMessage",
+				Info:     "callCoco-" + hostname + "-" + ip,
+				Status:   false,
 			}
-
-			File.WriteInfoLog("Warning\t" + "请求 coco 连接 nat： " + hostname +
-				"-" + ip + " 失败一次！具体异常为：error " + err.Error())
+			CallPolice.Judge(jsonfile)
+			if err := File.WriteFile(Global.ReadJson(jsonfile), jsonfile.Time); err != nil {
+				Global.ErrorLog.Println("write info " + err.Error())
+			}
+		} else {
+			jsonfile := Global.MonitorJson{
+				Time:     time.Now().Format("2006-01-02 15:04"),
+				IP:       "123.207.233.139-JH-Bak-QCloudGZ3-Nat=}10.4.0.17",
+				Hostname: "PatrolMessage",
+				Info:     "callCoco-" + hostname + "-" + ip,
+				Status:   true,
+			}
+			CallPolice.Judge(jsonfile)
+			if err := File.WriteFile(Global.ReadJson(jsonfile), jsonfile.Time); err != nil {
+				Global.ErrorLog.Println("write info " + err.Error())
+			}
 		}
 	}
 }

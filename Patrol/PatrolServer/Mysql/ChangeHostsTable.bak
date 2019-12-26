@@ -9,25 +9,25 @@ func InsertHosts(ht Global.HostsTable) (bool) {
 	//开启事务
 	tx, err := DB.Begin()
 	if err != nil {
-		File.WriteErrorLog("Mysql DB Hosts insert start fail: " + err.Error())
+		Global.ErrorLog.Println("Mysql DB Hosts insert start fail: " + err.Error())
 		return false
 	}
 	//准备sql语句
 	stmt, err := tx.Prepare("INSERT INTO nat_hosts (`IP`, `time`) VALUES (?, ?)")
 	if err != nil {
-		File.WriteErrorLog("Mysql DB sql insert Prepare fail: " + err.Error())
+		Global.ErrorLog.Println("Mysql DB sql insert Prepare fail: " + err.Error())
 		return false
 	}
 	//将参数传递到sql语句中并且执行
 	_, err = stmt.Exec(ht.IP, ht.Time)
 	if err != nil {
-		File.WriteErrorLog("Mysql DB insert Exec fail: " + err.Error())
+		Global.ErrorLog.Println("Mysql DB insert Exec fail: " + err.Error())
 		return false
 	}
 	//将事务提交
 	_ = tx.Commit()
 	//获得上一个插入自增的id
-	File.WriteInfoLog("insert " + ht.IP + " - " + ht.Time + " successfully")
+	Global.InfoLog.Println("insert " + ht.IP + " - " + ht.Time + " successfully")
 	return true
 }
 
@@ -36,27 +36,27 @@ func DeleteHosts(ht Global.HostsTable) (bool) {
 	rows, err := DB.Query("SELECT * from patrol.nat_hosts WHERE IP = '" + ht.IP + "'")
 	err = rows.Scan()
 	if err != nil {
-		File.WriteInfoLog("has deleted " + ht.IP + " successfully")
+		Global.InfoLog.Println("has deleted " + ht.IP + " successfully")
 		return true
 	}
 
 	//开启事务
 	tx, err := DB.Begin()
 	if err != nil {
-		File.WriteErrorLog("Mysql DB Hosts delete starst fail: " + err.Error())
+		Global.ErrorLog.Println("Mysql DB Hosts delete starst fail: " + err.Error())
 	}
 
 	//准备sql语句
 	_, err = tx.Exec("DELETE FROM patrol.nat_hosts WHERE IP = ?", ht.IP)
 	if err != nil {
-		File.WriteErrorLog("Mysql DB Nat delete Exec fail: " + err.Error())
+		Global.ErrorLog.Println("Mysql DB Nat delete Exec fail: " + err.Error())
 		return false
 	}
 
 	//提交事务
 	_ = tx.Commit()
 	//获得上一个insert的id
-	File.WriteInfoLog("delete " + ht.IP + " successfully")
+	Global.InfoLog.Println("delete " + ht.IP + " successfully")
 	return true
 }
 
@@ -64,7 +64,7 @@ func SelectHostsTable() ([]Global.HostsTable) {
 	//执行查询语句
 	rows, err := DB.Query("SELECT * from patrol.nat_hosts")
 	if err != nil {
-		File.WriteErrorLog("查询出错了")
+		Global.ErrorLog.Println("查询出错了")
 	}
 	var hts []Global.HostsTable
 	//循环读取结果
@@ -73,7 +73,7 @@ func SelectHostsTable() ([]Global.HostsTable) {
 		//将每一行的结果都赋值到一个user对象中
 		err := rows.Scan(&ht.IP, &ht.Time)
 		if err != nil {
-			File.WriteErrorLog("Mysql DB Nat select rows fail: " + err.Error())
+			Global.ErrorLog.Println("Mysql DB Nat select rows fail: " + err.Error())
 		}
 		//将user追加到users的这个数组中
 		hts = append(hts, ht)

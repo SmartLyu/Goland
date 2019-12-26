@@ -26,10 +26,10 @@ func PostMonitorInfo(w http.ResponseWriter, r *http.Request) {
 	// 读取用户post的信息
 	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
 	if err != nil {
-		File.WriteErrorLog(err.Error())
+		Global.ErrorLog.Println(err.Error())
 	}
 	if err := r.Body.Close(); err != nil {
-		File.WriteErrorLog(err.Error())
+		Global.ErrorLog.Println(err.Error())
 	}
 
 	// 解析json格式信息
@@ -37,10 +37,10 @@ func PostMonitorInfo(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(422) // unprocessable entity
 		if err := json.NewEncoder(w).Encode(err); err != nil {
-			File.WriteErrorLog(err.Error())
+			Global.ErrorLog.Println(err.Error())
 		}
 		if !jsonfile.Exist() {
-			File.WriteInfoLog("Error: has got empty json data")
+			Global.InfoLog.Println("Error: has got empty json data")
 		}
 		return
 	}
@@ -48,7 +48,7 @@ func PostMonitorInfo(w http.ResponseWriter, r *http.Request) {
 	// 添加数据
 	go func() {
 		if err := File.WriteFile(Global.ReadJson(jsonfile), jsonfile.Time); err != nil {
-			File.WriteErrorLog("write info " + err.Error())
+			Global.ErrorLog.Println("write info " + err.Error())
 		}
 		CallPolice.Judge(jsonfile)
 
@@ -64,7 +64,7 @@ func PostMonitorInfo(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(jsonfile); err != nil {
-		File.WriteErrorLog(err.Error())
+		Global.ErrorLog.Println(err.Error())
 	}
 }
 
@@ -75,10 +75,10 @@ func PostNatInfo(w http.ResponseWriter, r *http.Request) {
 	// 读取用户post的信息
 	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
 	if err != nil {
-		File.WriteErrorLog(err.Error())
+		Global.ErrorLog.Println(err.Error())
 	}
 	if err := r.Body.Close(); err != nil {
-		File.WriteErrorLog(err.Error())
+		Global.ErrorLog.Println(err.Error())
 	}
 
 	// 解析json格式信息
@@ -86,7 +86,7 @@ func PostNatInfo(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(422) // unprocessable entity
 		if err := json.NewEncoder(w).Encode(err); err != nil {
-			File.WriteErrorLog(err.Error())
+			Global.ErrorLog.Println(err.Error())
 		}
 	}
 
@@ -98,7 +98,7 @@ func PostNatInfo(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(jsonfile); err != nil {
-		File.WriteErrorLog(err.Error())
+		Global.ErrorLog.Println(err.Error())
 	}
 }
 
@@ -112,7 +112,7 @@ func ReturnMonitorInfo(w http.ResponseWriter, r *http.Request) {
 	//解析参数，默认是不会解析的
 	err := r.ParseForm()
 	if err != nil {
-		File.WriteErrorLog("Recv:" + r.RemoteAddr)
+		Global.ErrorLog.Println("Recv:" + r.RemoteAddr)
 	}
 
 	pwd := Global.DataFileDir
@@ -136,7 +136,7 @@ func ReturnMonitorInfo(w http.ResponseWriter, r *http.Request) {
 	// 读取用户输入的时间参数信息
 	getTimeStart, err := time.Parse(time.RFC3339, r.Form.Get("time1"))
 	if err != nil {
-		File.WriteErrorLog("Get Monitor Start Day Info: " + r.Form.Get("time1") + " , But Time stye Error")
+		Global.ErrorLog.Println("Get Monitor Start Day Info: " + r.Form.Get("time1") + " , But Time stye Error")
 		http.NotFoundHandler().ServeHTTP(w, r)
 		return
 	}
@@ -144,7 +144,7 @@ func ReturnMonitorInfo(w http.ResponseWriter, r *http.Request) {
 
 	getTimeEnd, err := time.Parse(time.RFC3339, r.Form.Get("time2"))
 	if err != nil {
-		File.WriteErrorLog("Get Monitor End Day Info: " + r.Form.Get("time2") + " , But Time stye Error")
+		Global.ErrorLog.Println("Get Monitor End Day Info: " + r.Form.Get("time2") + " , But Time stye Error")
 		http.NotFoundHandler().ServeHTTP(w, r)
 		return
 	}
@@ -224,10 +224,10 @@ func ReturnMonitorInfo(w http.ResponseWriter, r *http.Request) {
 	monitorJsons = Global.ReadMonitorJson(jsonString)
 	if err := json.NewEncoder(w).Encode(monitorJsons); err != nil {
 		w.WriteHeader(http.StatusNotFound)
-		File.WriteErrorLog(err.Error())
+		Global.ErrorLog.Println(err.Error())
 	}
 	w.WriteHeader(http.StatusOK)
-	File.WriteInfoLog("Get Patrol info all hit search is " + strconv.FormatInt(SearchNumber, 10) +
+	Global.InfoLog.Println("Get Patrol info all hit search is " + strconv.FormatInt(SearchNumber, 10) +
 		", from " + getTimeStart.Format("2006-01-02:15:04") +
 		" to " + getTimeEnd.Format("2006-01-02:15:04"))
 }
@@ -242,7 +242,7 @@ func ReturnMonitorInfoList(w http.ResponseWriter, r *http.Request) {
 	//解析参数，默认是不会解析的
 	err := r.ParseForm()
 	if err != nil {
-		File.WriteErrorLog("Recv:" + r.RemoteAddr)
+		Global.ErrorLog.Println("Recv:" + r.RemoteAddr)
 	}
 
 	pwd := Global.DataFileDir
@@ -268,7 +268,7 @@ func ReturnMonitorInfoList(w http.ResponseWriter, r *http.Request) {
 	// 读取用户输入的时间参数信息
 	getTimeStart, err := time.Parse(time.RFC3339, r.Form.Get("time1"))
 	if err != nil {
-		File.WriteErrorLog("Get Monitor Start Day Info: " + r.Form.Get("time1") + " , But Time stye Error")
+		Global.ErrorLog.Println("Get Monitor Start Day Info: " + r.Form.Get("time1") + " , But Time stye Error")
 		http.NotFoundHandler().ServeHTTP(w, r)
 		return
 	}
@@ -276,7 +276,7 @@ func ReturnMonitorInfoList(w http.ResponseWriter, r *http.Request) {
 
 	getTimeEnd, err := time.Parse(time.RFC3339, r.Form.Get("time2"))
 	if err != nil {
-		File.WriteErrorLog("Get Monitor End Day Info: " + r.Form.Get("time2") + " , But Time stye Error")
+		Global.ErrorLog.Println("Get Monitor End Day Info: " + r.Form.Get("time2") + " , But Time stye Error")
 		http.NotFoundHandler().ServeHTTP(w, r)
 		return
 	}
@@ -324,9 +324,9 @@ func ReturnMonitorInfoList(w http.ResponseWriter, r *http.Request) {
 			var tmpSearchNumber int64 = 0
 			tmpSearchNumber, data, err = File.SearchWordInFile(des, getGexp, getKey...)
 			if err != nil {
-				File.WriteInfoLog("Find key Err " + err.Error())
+				Global.InfoLog.Println("Find key Err " + err.Error())
 			} else {
-				File.WriteInfoLog("Send File:" + des + ", daytime： " + tmpTime.Print())
+				Global.InfoLog.Println("Send File:" + des + ", daytime： " + tmpTime.Print())
 				if SearchNumber <= Global.MaxSearchLen*10 {
 					jsonString = jsonString + data
 				}
@@ -340,7 +340,7 @@ func ReturnMonitorInfoList(w http.ResponseWriter, r *http.Request) {
 					break
 				}
 				if err != nil {
-					File.WriteErrorLog("http writed Err" + err.Error())
+					Global.ErrorLog.Println("http writed Err" + err.Error())
 				}
 			}
 		}
@@ -418,10 +418,10 @@ func ReturnMonitorInfoList(w http.ResponseWriter, r *http.Request) {
 	_, err = w.Write([]byte(returntring))
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
-		File.WriteErrorLog("http writed Err" + err.Error())
+		Global.ErrorLog.Println("http writed Err" + err.Error())
 	}
 	w.WriteHeader(http.StatusOK)
-	File.WriteInfoLog("Get Patrol info all hit search is " + strconv.FormatInt(SearchNumber, 10) +
+	Global.InfoLog.Println("Get Patrol info all hit search is " + strconv.FormatInt(SearchNumber, 10) +
 		", from " + getTimeStart.Format("2006-01-02:15:04") +
 		" to " + getTimeEnd.Format("2006-01-02:15:04"))
 }
@@ -438,10 +438,10 @@ func AddNatMonitor(w http.ResponseWriter, r *http.Request) {
 	// 读取用户post的信息
 	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
 	if err != nil {
-		File.WriteErrorLog(err.Error())
+		Global.ErrorLog.Println(err.Error())
 	}
 	if err := r.Body.Close(); err != nil {
-		File.WriteErrorLog(err.Error())
+		Global.ErrorLog.Println(err.Error())
 	}
 
 	// 解析json格式信息
@@ -449,7 +449,7 @@ func AddNatMonitor(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(422) // unprocessable entity
 		if err := json.NewEncoder(w).Encode(err); err != nil {
-			File.WriteErrorLog(err.Error())
+			Global.ErrorLog.Println(err.Error())
 		}
 	}
 
@@ -466,7 +466,7 @@ func AddNatMonitor(w http.ResponseWriter, r *http.Request) {
 
 	// 返回信息
 	if err := json.NewEncoder(w).Encode(jsonfile); err != nil {
-		File.WriteErrorLog(err.Error())
+		Global.ErrorLog.Println(err.Error())
 	}
 }
 
@@ -482,10 +482,10 @@ func DeleteNatMonitor(w http.ResponseWriter, r *http.Request) {
 	// 读取用户post的信息
 	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
 	if err != nil {
-		File.WriteErrorLog(err.Error())
+		Global.ErrorLog.Println(err.Error())
 	}
 	if err := r.Body.Close(); err != nil {
-		File.WriteErrorLog(err.Error())
+		Global.ErrorLog.Println(err.Error())
 	}
 
 	// 解析json格式信息
@@ -493,7 +493,7 @@ func DeleteNatMonitor(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(422) // unprocessable entity
 		if err := json.NewEncoder(w).Encode(err); err != nil {
-			File.WriteErrorLog(err.Error())
+			Global.ErrorLog.Println(err.Error())
 		}
 	}
 
@@ -510,7 +510,7 @@ func DeleteNatMonitor(w http.ResponseWriter, r *http.Request) {
 
 	// 返回信息
 	if err := json.NewEncoder(w).Encode(jsonfile); err != nil {
-		File.WriteErrorLog(err.Error())
+		Global.ErrorLog.Println(err.Error())
 	}
 }
 
@@ -526,10 +526,10 @@ func UpdataNatMonitor(w http.ResponseWriter, r *http.Request) {
 	// 读取用户post的信息
 	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
 	if err != nil {
-		File.WriteErrorLog(err.Error())
+		Global.ErrorLog.Println(err.Error())
 	}
 	if err := r.Body.Close(); err != nil {
-		File.WriteErrorLog(err.Error())
+		Global.ErrorLog.Println(err.Error())
 	}
 
 	// 解析json格式信息
@@ -537,7 +537,7 @@ func UpdataNatMonitor(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(422) // unprocessable entity
 		if err := json.NewEncoder(w).Encode(err); err != nil {
-			File.WriteErrorLog(err.Error())
+			Global.ErrorLog.Println(err.Error())
 		}
 	}
 
@@ -561,7 +561,7 @@ func UpdataNatMonitor(w http.ResponseWriter, r *http.Request) {
 
 	// 返回信息
 	if err := json.NewEncoder(w).Encode(jsonfile); err != nil {
-		File.WriteErrorLog(err.Error())
+		Global.ErrorLog.Println(err.Error())
 	}
 }
 
@@ -576,7 +576,7 @@ func SelectNatMonitor(w http.ResponseWriter, r *http.Request) {
 	// 返回信息
 	if err := json.NewEncoder(w).Encode(jsonfile); err != nil {
 		w.WriteHeader(http.StatusNotFound)
-		File.WriteErrorLog(err.Error())
+		Global.ErrorLog.Println(err.Error())
 	}
 	w.WriteHeader(http.StatusOK)
 }
@@ -594,7 +594,7 @@ func ReloadCrontabNat(w http.ResponseWriter, r *http.Request) {
 	// 返回信息
 	if err := json.NewEncoder(w).Encode(jsonfile); err != nil {
 		w.WriteHeader(http.StatusNotFound)
-		File.WriteErrorLog(err.Error())
+		Global.ErrorLog.Println(err.Error())
 	}
 	w.WriteHeader(http.StatusOK)
 }
@@ -604,26 +604,26 @@ func ReturnMonitorShell(w http.ResponseWriter, r *http.Request) {
 	//解析参数，默认是不会解析的
 	err := r.ParseForm()
 	if err != nil {
-		File.WriteErrorLog("Recv:" + r.RemoteAddr)
+		Global.ErrorLog.Println("Recv:" + r.RemoteAddr)
 	}
 
 	des := Global.MonitorShellFile
 	desStat, err := os.Stat(des)
 	if err != nil {
-		File.WriteErrorLog("File Not Exit " + des)
+		Global.ErrorLog.Println("File Not Exit " + des)
 		http.NotFoundHandler().ServeHTTP(w, r)
 	} else if desStat.IsDir() {
-		File.WriteErrorLog("File Is Dir" + des)
+		Global.ErrorLog.Println("File Is Dir" + des)
 		http.NotFoundHandler().ServeHTTP(w, r)
 	} else {
 		data, err := ioutil.ReadFile(des)
 		if err != nil {
-			File.WriteErrorLog("Read File Err: " + err.Error())
+			Global.ErrorLog.Println("Read File Err: " + err.Error())
 		} else {
-			File.WriteInfoLog("Send File:" + des)
+			Global.InfoLog.Println("Send File:" + des)
 			_, err = w.Write([]byte(data))
 			if err != nil {
-				File.WriteErrorLog("http writed Err " + err.Error())
+				Global.ErrorLog.Println("http writed Err " + err.Error())
 			}
 		}
 	}
@@ -634,26 +634,26 @@ func ReturnNatShell(w http.ResponseWriter, r *http.Request) {
 	//解析参数，默认是不会解析的
 	err := r.ParseForm()
 	if err != nil {
-		File.WriteErrorLog("Recv:" + r.RemoteAddr)
+		Global.ErrorLog.Println("Recv:" + r.RemoteAddr)
 	}
 
 	des := Global.NatShellFile
 	desStat, err := os.Stat(des)
 	if err != nil {
-		File.WriteErrorLog("File Not Exit " + des)
+		Global.ErrorLog.Println("File Not Exit " + des)
 		http.NotFoundHandler().ServeHTTP(w, r)
 	} else if desStat.IsDir() {
-		File.WriteErrorLog("File Is Dir" + des)
+		Global.ErrorLog.Println("File Is Dir" + des)
 		http.NotFoundHandler().ServeHTTP(w, r)
 	} else {
 		data, err := ioutil.ReadFile(des)
 		if err != nil {
-			File.WriteErrorLog("Read File Err: " + err.Error())
+			Global.ErrorLog.Println("Read File Err: " + err.Error())
 		} else {
-			File.WriteInfoLog("Send File: " + des)
+			Global.InfoLog.Println("Send File: " + des)
 			_, err = w.Write([]byte(data))
 			if err != nil {
-				File.WriteErrorLog("http writed Err " + err.Error())
+				Global.ErrorLog.Println("http writed Err " + err.Error())
 			}
 		}
 	}
@@ -669,7 +669,7 @@ func ReturnAllNatMonitor(w http.ResponseWriter, r *http.Request) {
 	//解析参数，默认是不会解析的
 	err := r.ParseForm()
 	if err != nil {
-		File.WriteErrorLog("Recv: " + r.RemoteAddr)
+		Global.ErrorLog.Println("Recv: " + r.RemoteAddr)
 	}
 
 	nowTime := time.Now()
@@ -688,17 +688,17 @@ func ReturnAllNatMonitor(w http.ResponseWriter, r *http.Request) {
 
 	// 检查最近三秒的数据并返回
 	if err != nil {
-		File.WriteErrorLog("Find key Err: " + key + err.Error())
+		Global.ErrorLog.Println("Find key Err: " + key + err.Error())
 		http.NotFoundHandler().ServeHTTP(w, r)
 	} else {
-		File.WriteInfoLog("Send File:" + des)
+		Global.InfoLog.Println("Send File:" + des)
 		_, err = w.Write([]byte(data))
 		_, _ = w.Write([]byte("\n{\"readme\": \"已向所有后端机器发出监控请求，查看监控信息请 Get URL: " +
 			" http://134.175.50.184:8666/monitor/info?" +
 			"time=" + time.Now().Format("2006.01.02") + "&key=" +
 			nowTime.Format("2006-01-02 15:04") + "\"}]"))
 		if err != nil {
-			File.WriteErrorLog("http writed Err " + err.Error())
+			Global.ErrorLog.Println("http writed Err " + err.Error())
 		}
 	}
 	w.WriteHeader(http.StatusOK)
@@ -710,7 +710,7 @@ func ReturnNatMonitor(w http.ResponseWriter, r *http.Request) {
 	//解析参数，默认是不会解析的
 	err := r.ParseForm()
 	if err != nil {
-		File.WriteErrorLog("Recv: " + r.RemoteAddr)
+		Global.ErrorLog.Println("Recv: " + r.RemoteAddr)
 	}
 
 	// 读取用户输入的参数信息
@@ -733,17 +733,17 @@ func ReturnNatMonitor(w http.ResponseWriter, r *http.Request) {
 
 	// 检查最近三秒的数据并返回
 	if err != nil {
-		File.WriteErrorLog("Find key Err: " + key + err.Error())
+		Global.ErrorLog.Println("Find key Err: " + key + err.Error())
 		http.NotFoundHandler().ServeHTTP(w, r)
 	} else {
-		File.WriteInfoLog("Send File:" + des)
+		Global.InfoLog.Println("Send File:" + des)
 		_, err = w.Write([]byte(data))
 		_, _ = w.Write([]byte("\n{\"readme\": \"已向所有后端机器发出监控请求，查看监控信息请 Get URL: " +
 			" http://134.175.50.184:8666/monitor/info?" +
 			"time=" + time.Now().Format("2006.01.02") + "&key=" +
 			nowTime.Format("2006-01-02 15:04") + "\"}]"))
 		if err != nil {
-			File.WriteErrorLog("http writed Err " + err.Error())
+			Global.ErrorLog.Println("http writed Err " + err.Error())
 		}
 	}
 }
@@ -786,7 +786,7 @@ func ReturnPoliceStatus(w http.ResponseWriter, r *http.Request) {
 	// 返回信息
 	if err := json.NewEncoder(w).Encode(jsonfile); err != nil {
 		w.WriteHeader(http.StatusNotFound)
-		File.WriteErrorLog(err.Error())
+		Global.ErrorLog.Println(err.Error())
 	}
 	w.WriteHeader(http.StatusOK)
 }
@@ -818,7 +818,7 @@ func ReturnPoliceMap(w http.ResponseWriter, r *http.Request) {
 	// 返回信息
 	if err := json.NewEncoder(w).Encode(jsonfiles); err != nil {
 		w.WriteHeader(http.StatusNotFound)
-		File.WriteErrorLog(err.Error())
+		Global.ErrorLog.Println(err.Error())
 	}
 	w.WriteHeader(http.StatusOK)
 }
@@ -838,7 +838,7 @@ func ReturnNatHostsMap(w http.ResponseWriter, r *http.Request) {
 	// 返回信息
 	if err := json.NewEncoder(w).Encode(jsonfiles); err != nil {
 		w.WriteHeader(http.StatusNotFound)
-		File.WriteErrorLog(err.Error())
+		Global.ErrorLog.Println(err.Error())
 	}
 	w.WriteHeader(http.StatusOK)
 }

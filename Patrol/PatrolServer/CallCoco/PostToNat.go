@@ -1,14 +1,13 @@
 package CallCoco
 
 import (
-	"../File"
 	"../Global"
 	"net/http"
 	"strings"
 )
 
 // 连接coco服务器的接口
-func httpPostJson(jsonStr string,port string) error {
+func httpPostJson(jsonStr string, port string) error {
 
 	url := Global.CocoUrl
 	//req, err := http.NewRequest("POST", url+"?nat="+jsonStr, nil)
@@ -24,7 +23,7 @@ func httpPostJson(jsonStr string,port string) error {
 
 	func() {
 		if err := resp.Body.Close(); err != nil {
-			File.WriteErrorLog(err.Error())
+			Global.ErrorLog.Println(err.Error())
 		}
 	}()
 

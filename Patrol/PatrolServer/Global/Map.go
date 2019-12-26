@@ -8,23 +8,10 @@ type ErrorMapType struct {
 	Lock sync.Mutex
 }
 
-// 存储Nat机器中子服务器信息至内存
-type NatHostsMapType struct {
-	Data map[HostsTable]bool
-	Lock sync.Mutex
-}
-
 // 初始化创建map
-func NewErrorMapType() *ErrorMapType{
+func NewErrorMapType() *ErrorMapType {
 	return &ErrorMapType{
 		Data: make(map[string]int),
-	}
-}
-
-// 初始化创建map
-func NewNatHostsMapType() *NatHostsMapType{
-	return &NatHostsMapType{
-		Data: make(map[HostsTable]bool),
 	}
 }
 
@@ -73,6 +60,19 @@ func (m *ErrorMapType) Delete(key string) {
 	defer m.Lock.Unlock()
 
 	delete(m.Data, key)
+}
+
+// 存储Nat机器中子服务器信息至内存
+type NatHostsMapType struct {
+	Data map[HostsTable]bool
+	Lock sync.Mutex
+}
+
+// 初始化创建map
+func NewNatHostsMapType() *NatHostsMapType {
+	return &NatHostsMapType{
+		Data: make(map[HostsTable]bool),
+	}
 }
 
 // 功能同上

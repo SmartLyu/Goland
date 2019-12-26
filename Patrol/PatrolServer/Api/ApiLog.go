@@ -1,7 +1,7 @@
 package Api
 
 import (
-	"../File"
+	"../Global"
 	"net/http"
 	"time"
 )
@@ -12,6 +12,6 @@ func Logger(inner http.Handler, name string) http.Handler {
 		start := time.Now()
 		inner.ServeHTTP(w, r)
 
-		File.WriteAccessLog(r.Method + "\t" + r.RequestURI + "\t" + name + "\t" + time.Since(start).String())
+		Global.AccessLog.Println(r.Method + "\t" + r.RequestURI + "\t" + name + "\t" + time.Since(start).String())
 	})
 }

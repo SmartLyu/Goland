@@ -103,14 +103,6 @@ func sshDoShell(ip string, port int, cmd string) error {
 	ciphers := []string{}
 	session, client, err := connect(username, password, ip, key, port, ciphers)
 
-	defer func() {
-		_ = session.Close()
-		errc := client.Close()
-		if errc != nil {
-			log.Println("close client has error " + errc.Error())
-		}
-	}()
-
 	if err != nil {
 		return errors.New("连接 " + ip + " 异常" + err.Error())
 	}
@@ -122,6 +114,15 @@ func sshDoShell(ip string, port int, cmd string) error {
 	if err != nil {
 		log.Println("error has stopped " + err.Error())
 		return errors.New(err.Error())
+	}
+
+	err = session.Close()
+	if err != nil {
+		log.Println("close client has error " + err.Error())
+	}
+	errc := client.Close()
+	if errc != nil {
+		log.Println("close client has error " + errc.Error())
 	}
 
 	return nil

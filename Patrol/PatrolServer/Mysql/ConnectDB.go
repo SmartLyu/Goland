@@ -1,7 +1,7 @@
 package Mysql
 
 import (
-	"../File"
+	"../Global"
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
 	"strings"
@@ -32,8 +32,8 @@ func InitDB() {
 	DB.SetMaxIdleConns(10000)
 	//验证连接
 	if err := DB.Ping(); err != nil {
-		File.WriteErrorLog("opon database fail")
+		Global.ErrorLog.Println("opon database fail")
 		return
 	}
-	File.WriteInfoLog("connnect success")
+	Global.InfoLog.Println("connnect success")
 }

@@ -7,13 +7,17 @@ import (
 	"../Mysql"
 	"github.com/robfig/cron"
 	"strconv"
+	"sync"
 	"time"
 )
 
 var cs = make(map[string]*cron.Cron)
+var csLock sync.Mutex
 
 // 计划任务
 func CrontabToCallCoco(nt Global.NatTable) {
+	csLock.Lock()
+	defer csLock.Unlock()
 	cs[nt.IP] = cron.New()
 	spec := "0 */" + strconv.Itoa(nt.Time) + " * * * ?"
 
@@ -22,7 +26,7 @@ func CrontabToCallCoco(nt Global.NatTable) {
 	})
 
 	if err != nil {
-		File.WriteErrorLog("crontab is error: " + err.Error())
+		Global.ErrorLog.Println("crontab is error: " + err.Error())
 	}
 	cs[nt.IP].Start()
 }
@@ -34,13 +38,13 @@ func CrontabToDelMap() {
 
 	err := c.AddFunc(spec, func() {
 		for key, _ := range Global.ErrorMap.Data {
-			File.WriteInfoLog("delete error map: " + key)
+			Global.InfoLog.Println("delete error map: " + key)
 			Global.ErrorMap.Delete(key)
 		}
 	})
 
 	if err != nil {
-		File.WriteErrorLog("crontab is error: " + err.Error())
+		Global.ErrorLog.Println("crontab is error: " + err.Error())
 	}
 	c.Start()
 }
@@ -54,6 +58,8 @@ func StartAllCrontab() {
 
 // 重新读取数据库中nat机器的计划任务
 func ReStartAllCrontab() {
+	csLock.Lock()
+	defer csLock.Unlock()
 	for _, i := range cs {
 		i.Stop()
 	}
@@ -63,6 +69,8 @@ func ReStartAllCrontab() {
 }
 
 func StopCrontab(nt Global.NatTable) {
+	csLock.Lock()
+	defer csLock.Unlock()
 	cs[nt.IP].Stop()
 }
 
@@ -92,7 +100,7 @@ func CrontabToCheckHosts() {
 
 			// 添加数据
 			if err := File.WriteFile(Global.ReadJson(jsonfile), jsonfile.Time); err != nil {
-				File.WriteErrorLog(err.Error())
+				Global.ErrorLog.Println(err.Error())
 			}
 
 			des = pwd + time.Now().Add(-time.Minute*3).Format("2006-01/02/15/04") + Global.DataFileName
@@ -114,11 +122,35 @@ func CrontabToCheckHosts() {
 			}
 
 			CallPolice.Judge(jsonfile)
+			if err := File.WriteFile(Global.ReadJson(jsonfile), jsonfile.Time); err != nil {
+				Global.ErrorLog.Println("write info " + err.Error())
+			}
+		}
+
+		// 查看是否有异常日志产生
+		des := Global.UpdateLog(Global.ErrorFileName)
+		message, err := File.FindWorkInFile(des, time.Now().Add(-1*time.Minute).Format("2006/01/02 15:04"))
+		if err == nil {
+			CallPolice.CallMessage(message)
 		}
 	})
 
 	if err != nil {
-		File.WriteErrorLog("crontab is error: " + err.Error())
+		Global.ErrorLog.Println("crontab is error: " + err.Error())
+	}
+	c.Start()
+}
+
+func CrontabToCutLog() {
+	c := cron.New()
+	spec := "0 0 0 * * ?"
+
+	err := c.AddFunc(spec, func() {
+		Global.CutLog()
+	})
+
+	if err != nil {
+		Global.ErrorLog.Println("crontab is error: " + err.Error())
 	}
 	c.Start()
 }

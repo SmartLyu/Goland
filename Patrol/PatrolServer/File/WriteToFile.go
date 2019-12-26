@@ -4,37 +4,14 @@ import (
 	"../Global"
 	"errors"
 	"os"
-	"sync"
 )
-
-var fileLock sync.Mutex
 
 // 记录监控信息
 func WriteFile(message string, logTime string) error {
 
-	fileLock.Lock()
-	defer fileLock.Unlock()
-	datadir, datafile := Global.UpdateFile(logTime)
-
-	// 判断目录是否存在，不存在需要创建
-	_, err := os.Stat(datadir)
-	if err != nil && os.IsNotExist(err) {
-		err := os.MkdirAll(datadir, os.ModePerm)
-		if err != nil {
-			return err
-		}
-	}
-
-	// 判断文件是否存在，不存在需要创建
-	if _, err := os.Stat(datafile); err != nil {
-		if !os.IsExist(err) {
-			newFile, err := os.Create(datafile)
-			if err != nil {
-				return err
-			}
-			_ = newFile.Close()
-		}
-	}
+	datafile := Global.UpdateFile(logTime)
+	Global.FileWriteLock.Lock()
+	defer Global.FileWriteLock.Unlock()
 
 	f, err := os.OpenFile(datafile, os.O_WRONLY, 0644)
 	if err != nil {
