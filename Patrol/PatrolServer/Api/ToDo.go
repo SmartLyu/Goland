@@ -53,7 +53,6 @@ func PostMonitorInfo(w http.ResponseWriter, r *http.Request) {
 		CallPolice.Judge(jsonfile)
 
 		hostjson.IP = jsonfile.IP
-		hostjson.Time = time.Now().Format("2006-01-02 15:04")
 
 		if jsonfile.Info == "survive" {
 			Mysql.DeleteHosts(hostjson)
@@ -91,7 +90,6 @@ func PostNatInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 添加数据
-	jsonfile.Time = time.Now().Format("2006-01-02 15:04")
 	Mysql.InsertHosts(jsonfile)
 
 	// 返回信息
@@ -830,9 +828,12 @@ func ReturnNatHostsMap(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")             //返回数据格式是json
 
 	var jsonfiles []Global.HostsTable
+	var ht Global.HostsTable
 
-	for key, _ := range Global.NatHostsMap.Data {
-		jsonfiles = append(jsonfiles, key)
+	for key, value := range Global.NatHostsMap.Data {
+		ht.HostName = value.Hostname
+		ht.IP = key
+		jsonfiles = append(jsonfiles, ht)
 	}
 
 	// 返回信息

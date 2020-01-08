@@ -2,22 +2,30 @@
 # ==================
 # Description: 巡查使用监控程序
 # Created By: 于志远
-# Version: 0.1
-# Last Modified: 2019-5-10
+# Version: 1.2
+# Last Modified: 2020-01-06
 # ==================
 
 # 全局变量
-TIMEOUT='3'
+TIMEOUT='2'
 USER=work
 
 STEPLENTH='60'
 URL="patrol.ijunhai.com:8686/monitor/collect"
 HOST=${HOSTNAME}
-LOGDIR="/work/logs/openfalcon"
-LOGFILE="${LOGDIR}/patrol-monitor.log"
 DATE=$(TZ=Asia/Shanghai date "+%Y-%m-%d %H:%M")
 MAXSIZE=10485760
-ERRORLOG="${LOGDIR}/error.log"
+
+# 日志信息
+LOGDIR="/work/logs/openfalcon"
+LOGFILE="${LOGDIR}/patrol-monitor.log"
+RETRYLOGFILE="${LOGDIR}/retry.log"
+TMPLOGFILE="${LOGDIR}/patrol-detail.$(TZ=Asia/Shanghai date "+%Y-%m-%d-%H-%M").log"
+TMPCPULOGFILE="/tmp/.patrol.cpu.tmp.$(TZ=Asia/Shanghai date "+%s").log"
+TMPSTATUSLOGFILE="/tmp/.patrol.status.tmp.$(TZ=Asia/Shanghai date "+%s").log"
+
+# 海外加速连接通道
+OVERSEA_URL="120.24.170.21:8686/monitor/collect"
 
 #设置报警阈值
 POLICE=90
@@ -37,6 +45,11 @@ PostToApi(){
     tag_name=$1
     status=$2
 
+    # 判断脚本是否需要保留日志
+    if [[ $status == false ]];then
+        echo false > ${TMPSTATUSLOGFILE}
+    fi
+
     data="{ \
         \"time\": \"${DATE}\", \
         \"IP\": \"${ip_info}\", \
@@ -44,25 +57,41 @@ PostToApi(){
         \"info\": \"${tag_name}\", \
         \"status\": ${status} \
         }"
-    echo "$(date) ${ip_info}:${tag_name}  ${status}  " >> ${LOGFILE}
-    curl -s --connect-timeout ${TIMEOUT} -X POST -d "${data}" $URL &>> ${LOGFILE}
+    echo "$(date) : ${DATE} ${ip_info}:${tag_name}  ${status}  " >> ${LOGFILE}
+    curl -s --connect-timeout ${TIMEOUT} -X POST -d "${data}" $URL
     if [[ $? -ne 0 ]];then
         sleep 1
-        echo First $(date) ${data} >> /tmp/retry.log
-        curl -s --connect-timeout ${TIMEOUT} -X POST -d "${data}" $URL 2>> ${LOGFILE}
+        echo First $(date) ${data} >> ${RETRYLOGFILE}
+        curl -s --connect-timeout ${TIMEOUT} -X POST -d "${data}" $URL
         if [[ $? -ne 0 ]];then
             sleep 1
-            echo Second $(date)  ${data} >> /tmp/retry.log
-            curl -s --connect-timeout ${TIMEOUT} -X POST -d "${data}" $URL 2>> ${LOGFILE}
+            echo Second $(date)  ${data} >> ${RETRYLOGFILE}
+            curl -s --connect-timeout ${TIMEOUT} -X POST -d "${data}" $URL
+            if [[ $? -ne 0 ]];then
+                echo Third $(date)  ${data} >> ${RETRYLOGFILE}
+                curl -s --connect-timeout ${TIMEOUT} -X POST -d "${data}" ${OVERSEA_URL}
+                if [[ $? -ne 0 ]];then
+                    echo $(date) Push data ${tag_name} Error ! >> ${LOGFILE}
+                    return
+                fi
+            fi
         fi
     fi
-    echo $(date) Push data ${tag_name} successfully >> ${LOGFILE}
 }
 
 CheckCpu(){
     local status
     local cpu
-    cpu=$(top -bn 2 |grep Cpu | tail -1 | cut -d "," -f 1 | cut -d ":" -f 2 | awk '{print $1}');
+    local cpu_number
+
+    top -bn 1 &> ${TMPCPULOGFILE}
+    cat ${TMPCPULOGFILE}
+    ps -aux
+    cpu_number=$(cat /proc/cpuinfo| grep "processor"| wc -l)
+    if [[ ${cpu_number} == 1 ]] || [[ ${cpu_number} == 2 ]];then
+        return
+    fi
+    cpu=$(cat ${TMPCPULOGFILE} |grep Cpu | tail -1 | cut -d "," -f 1 | cut -d ":" -f 2 | awk '{print $1}');
 
     echo $cpu | grep '%'
     if [[ $? -eq 0 ]];then
@@ -77,7 +106,6 @@ CheckCpu(){
 
     if [[ $cpu -ge $POLICE ]] || [[ s$cpu == 's' ]];then
         status=false
-        top -bn 2 &>> ${ERRORLOG}
     else
         status=true
     fi
@@ -89,14 +117,18 @@ CheckLoad(){
     local status
     local load
     local cpu_number
+
+    uptime
     cpu_number=$(cat /proc/cpuinfo| grep "processor"| wc -l)
     if [[ ${cpu_number} == 1 ]] || [[ ${cpu_number} == 2 ]];then
         return
     fi
-    load=$(uptime | awk '{printf ("%d\n",$NF/'${cpu_number}'*100)}')
+    load_1=$(uptime | awk '{printf ("%d\n",$(NF-2)/'${cpu_number}'*6)}')
+    load_5=$(uptime | awk '{printf ("%d\n",$(NF-1)/'${cpu_number}'*6)}')
+    load=$[load_1+load_5]
+    load=$[load/2]
     if [[ load -ge $POLICE ]] || [[ s$load == 's' ]];then
         status=false
-        top -bn 2 &>> ${ERRORLOG}
     else
         status=true
     fi
@@ -107,10 +139,18 @@ CheckLoad(){
 CheckMem(){
     local status
     local mem
-    mem=$(free -t | grep Total | awk '{printf ("%d\n",$3/$2*100)}')
+    local memMem
+    local memTotal
+
+    free -mht
+    if [[ $(free -t | grep Total | awk '{print($2)}') -le 1500000 ]];then
+       return
+    fi
+    memMem=$(free -t | grep Mem | awk '{printf ("%d\n",($4+$5+$6)/$2*100)}')
+    memTotal=$(free -t | grep Total | awk '{printf ("%d\n",$3/$2*100)}')
+    mem=$[(memMem+memTotal)/2]
     if [[ ${mem} -ge $POLICE ]] || [[ s$mem == 's' ]];then
         status=false
-        top -bn 2 &>> ${ERRORLOG}
     else
         status=true
     fi
@@ -121,6 +161,8 @@ CheckMem(){
 CheckDf(){
     local status
     local df
+
+    df -h
     df=$(df | grep ^/ | grep -v 'loop' | awk '{print $1}')
     for i in $df
     do
@@ -156,6 +198,7 @@ CheckAll(){
     sleep 0.01
 
     CheckDf &
+    wait
 }
 
 CheckFalcon(){
@@ -204,6 +247,9 @@ CheckMysql(){
         status=false
     else
         status=true
+        if [[ $(ps -aux | grep mysqld | grep -v 'grep' | wc -l | awk '{print $1}') -ge 200 ]];then
+            status=false
+        fi
     fi
 
     PostToApi mysqld ${status}
@@ -213,6 +259,8 @@ CheckMysqlSlave(){
     local status=1
     local io_status=1
     local sql_status=0
+
+    strace /work/servers/mysql/bin/mysql -u root -h 127.0.0.1 -pk8U@*hy4icomxz -e 'show slave status\G'
     /work/servers/mysql/bin/mysql -u root -h 127.0.0.1 -pk8U@*hy4icomxz -e 'show slave status\G' | grep 'Slave_IO_Running: Yes'
     io_status=$?
     /work/servers/mysql/bin/mysql -u root -h 127.0.0.1 -pk8U@*hy4icomxz -e 'show slave status\G' | grep 'Slave_SQL_Running: Yes'
@@ -277,14 +325,10 @@ MyError(){
 
 # 简单测试环境并完成初始化
 Init(){
-
-    if [[ s${NATINFO} == "s" ]] || [[ s${IPINFO} == "s" ]];then
-         MyError 1
-    fi
     mkdir -p ${LOGDIR}
     if [[ ! -w ${LOGDIR} ]];then
-        PostToApi ${LOGDIR}_permission false
         LOGFILE='/tmp/tmp-test.log'
+        PostToApi ${LOGDIR}_permission_deny false
     fi
     id ${USER}
     if [[ $? -ne 0 ]];then
@@ -292,7 +336,29 @@ Init(){
         MyError 2
     fi
     touch ${LOGFILE}
+    if [[ ! -w ${LOGFILE} ]];then
+        LOGFILE='/tmp/tmp-test.log'
+        PostToApi ${LOGFILE}_permission_deny false
+    fi
+}
 
+# 服务检查前基本检查
+MonitorInit(){
+    local filenumber
+
+    if [[ s${NATINFO} == "s" ]] || [[ s${IPINFO} == "s" ]];then
+         MyError 1
+    fi
+
+    PostToApi survive true
+    echo true > ${TMPSTATUSLOGFILE}
+
+    filenumber=$(ps aux | grep $0 | grep -v grep | wc -l | awk '{print $1}')
+    if [[ ${filenumber} -ge ${POLICE} ]];then
+        PostToApi patrol-shell=${filenumber} false
+    else
+        PostToApi patrol-shell=${filenumber} true
+    fi
 }
 
 # 处理日志
@@ -307,9 +373,10 @@ CleanLogFile(){
 }
 
 Main(){
+    echo $(date) $@
     local monitor_modle=""
-    local short_opts="hn:i:faxmsp"
-    local long_opts="help,nat:,ip:,all,falcon,nginx,mysql,slave,php"
+    local short_opts="hn:i:t:faxmsp"
+    local long_opts="help,nat:,ip:,time:,all,falcon,nginx,mysql,slave,php"
     local argsw
     # 将规范化后的命令行参数分配至位置参数（$1,$2,...)
     args=$(getopt -o ${short_opts} --long ${long_opts} -- "$@" 2>/dev/null)
@@ -329,6 +396,10 @@ Main(){
                 ;;
             -n|--nat)
                 NATINFO=$2
+                shift 2
+                ;;
+            -t|--time)
+                DATE=$(TZ=Asia/Shanghai date  -d "@$2" "+%Y-%m-%d %H:%M")
                 shift 2
                 ;;
             -i|--ip)
@@ -370,17 +441,15 @@ Main(){
     esac
     done
 
-    Init
-    PostToApi survive true
+    MonitorInit
 
     # 清理日志
-    CleanLogFile /tmp/retry.log 1048576
+    CleanLogFile ${RETRYLOGFILE} 1048576
     CleanLogFile ${LOGFILE} ${MAXSIZE}
     CleanLogFile /work/logs/openfalcon/patrol-nat-monitor.log ${MAXSIZE}
     CleanLogFile /work/logs/openfalcon/monitor.log $[MAXSIZE*10]
-    CleanLogFile ${ERRORLOGE} ${MAXSIZE}
+    find ${LOGDIR} -name 'patrol-detail.*.log' -mmin +1000 -exec rm -f {} \;
 
-    echo "$(date) prepare to patrol monitor." >> ${LOGFILE}
     # 错开巡查机器上传数据的时间
     sleep $[RANDOM%10].$[RANDOM%999]
     # 获取基本参数后，开始监控模块
@@ -391,6 +460,13 @@ Main(){
         sleep 0.01
         Monitor $i &
     done
+
+    # 等待监控完毕，解锁
+    wait
+    if [[ $(cat ${TMPSTATUSLOGFILE}) == 'true' ]];then
+        rm -f ${TMPLOGFILE}
+    fi
+    rm -f ${TMPSTATUSLOGFILE} ${TMPCPULOGFILE}
 }
 
 # 显示脚本用法
@@ -403,9 +479,11 @@ USAGE:$0 [OPTIONS] [work_password]
     -h | --help          查看帮助信息
     -n | --nat           指定nat机IP信息
     -i | --ip            指定本机IP信息
+    -t | --time          指定当前时间信息
     -f | --falcon        监控openfalcon
 
 EOF
 }
 
-Main $@ &
+Init
+Main $@ &> ${TMPLOGFILE} &

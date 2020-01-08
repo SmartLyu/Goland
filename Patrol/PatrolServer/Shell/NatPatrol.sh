@@ -2,26 +2,38 @@
 # ==================
 # Description: 巡查调用nat使用的程序
 # Created By: 于志远
-# Version: 0.1
-# Last Modified: 2019-5-14
+# Version: 1.2
+# Last Modified: 2020-01-06
 # ==================
 
 # 全局变量
-TIMEOUT='5'
+TIMEOUT='2'
 USER=work
 
 STEPLENTH='60'
-URL="patrol.ijunhai.com:8686/monitor/collect"
-HOSTSURL="patrol.ijunhai.com:8686/monitor/nat"
+PATROLIP="patrol.ijunhai.com"
+URL="${PATROLIP}:8686/monitor/collect"
+HOSTSURL="${PATROLIP}:8686/monitor/nat"
+DOWNLOAD_URL="${PATROLIP}:8686/shell/monitor"
 HOST=${HOSTNAME}
+DATE=$(TZ=Asia/Shanghai date "+%Y-%m-%d %H:%M")
+TIMETEMPLE=""
+
+# 日志信息
 LOGDIR="/work/logs/openfalcon"
 LOGFILE="${LOGDIR}/patrol-nat-monitor.log"
-DOWNLOAD_URL="134.175.50.184:8686/shell/monitor"
-DATE=$(TZ=Asia/Shanghai date "+%Y-%m-%d %H:%M")
-MAXSIZE=10485760
+RETRYLOGFILE="${LOGDIR}/retry-nat.log"
+TMPLOGFILE="${LOGDIR}/patrol-nat-detail.$(TZ=Asia/Shanghai date "+%Y-%m-%d-%H-%M").log"
+TMPSTATUSLOGFILE="/tmp/.patrol-nat.status.tmp.log"
 
-# 详细日志位置
-DETAILLOG="${LOGDIR}/patrol.detail.log"
+# 海外加速配置
+OVERSEA_PATROLIP="120.24.170.21"
+OVERSEA_URL="${PATROLIP}:8686/monitor/collect"
+OVERSEA_HOSTSURL="${PATROLIP}:8686/monitor/nat"
+OVERSEA_DOWNLOAD_URL="${PATROLIP}:8686/shell/monitor"
+
+# 日志裁剪阈值
+MAXSIZE=10485760
 NATINFO=""
 
 # 发送数据给监控的API
@@ -36,6 +48,11 @@ PostToApi(){
     tag_name=$1
     status=$2
 
+    # 判断脚本是否需要保留日志
+    if [[ $status == false ]];then
+        echo false > ${TMPSTATUSLOGFILE}
+    fi
+
     data="{ \
         \"time\": \"${DATE}\", \
         \"IP\": \"${ip_info}\", \
@@ -43,16 +60,16 @@ PostToApi(){
         \"info\": \"${tag_name}\", \
         \"status\": ${status} \
         }"
-    echo "$(date) ${ip_info}:${tag_name}  ${status}  " >> ${LOGFILE}
+    echo "$(date) ${DATE} ${ip_info}:${tag_name}  ${status}  " >> ${LOGFILE}
     curl -s --connect-timeout ${TIMEOUT} -X POST -d "${data}" $URL
     if [[ $? -ne 0 ]];then
         sleep 2
-        echo First $(date) ${data} >> /tmp/retry.log
+        echo First $(date) ${data} >> ${RETRYLOGFILE}
         curl -s --connect-timeout ${TIMEOUT} -X POST -d "${data}" $URL 2>> ${LOGFILE}
         if [[ $? -ne 0 ]];then
             sleep 2
-            echo Second $(date) ${data} >> /tmp/retry.log
-            curl -s --connect-timeout ${TIMEOUT} -X POST -d "${data}" $URL 2>> ${LOGFILE}
+            echo Second $(date) ${data} >> ${RETRYLOGFILE}
+            curl -s --connect-timeout ${TIMEOUT} -X POST -d "${data}" ${OVERSEA_URL} 2>> ${LOGFILE}
         fi
     fi
     echo
@@ -77,16 +94,16 @@ PostTelnetToApi(){
         \"info\": \"${tag_name}\", \
         \"status\": ${status} \
         }"
-    echo "$(date) ${ip_info}:${tag_name}  ${status}  " >> ${LOGFILE}
+    echo "$(date) ${DATE} ${ip_info}:${tag_name}  ${status}  " >> ${LOGFILE}
     curl -s --connect-timeout ${TIMEOUT} -X POST -d "${data}" $URL
     if [[ $? -ne 0 ]];then
         sleep 2
-        echo First $(date) ${data} >> /tmp/retry.log
+        echo First $(date) ${data} >> ${RETRYLOGFILE}
         curl -s --connect-timeout ${TIMEOUT} -X POST -d "${data}" $URL 2>> ${LOGFILE}
         if [[ $? -ne 0 ]];then
             sleep 2
-            echo Second $(date) ${data} >> /tmp/retry.log
-            curl -s --connect-timeout ${TIMEOUT} -X POST -d "${data}" $URL 2>> ${LOGFILE}
+            echo Second $(date) ${data} >> ${RETRYLOGFILE}
+            curl -s --connect-timeout ${TIMEOUT} -X POST -d "${data}" ${OVERSEA_URL} 2>> ${LOGFILE}
         fi
     fi
 }
@@ -98,25 +115,28 @@ PostHostsToApi(){
     local data
 
     ip_info=${NATINFO}"=}"${1}
+    hosname_info=$2
 
     data="{ \
-        \"IP\": \"${ip_info}\" \
+        \"IP\": \"${ip_info}\", \
+        \"hostname\": \"${hosname_info}\" \
         }"
-    echo "$(date) post ${ip_info}  " >> ${LOGFILE}
+    echo "$(date) ${DATE} post ${ip_info}  " >> ${LOGFILE}
     curl -s --connect-timeout ${TIMEOUT} -X POST -d "${data}" $HOSTSURL
     if [[ $? -ne 0 ]];then
-        echo First $(date) ${data} >> /tmp/retry.log
+        echo First $(date) ${data} >> ${RETRYLOGFILE}
         curl -s --connect-timeout ${TIMEOUT} -X POST -d "${data}" $HOSTSURL 2>> ${LOGFILE}
         if [[ $? -ne 0 ]];then
-            echo Second $(date) ${data} >> /tmp/retry.log
-            curl -s --connect-timeout ${TIMEOUT} -X POST -d "${data}" $HOSTSURL 2>> ${LOGFILE}
+            echo Third $(date) ${data} >> ${RETRYLOGFILE}
+            curl -s --connect-timeout ${TIMEOUT} -X POST -d "${data}" ${OVERSEA_HOSTSURL} 2>> ${LOGFILE}
             if [[ $? -ne 0 ]];then
-                PostToApi "nat_post_host=${1}-${2}" false &
-                echo ; return
+                curl -s --connect-timeout ${TIMEOUT} -X POST -d "${data}" ${OVERSEA_HOSTSURL} 2>> ${LOGFILE}
+                if [[ $? != 0 ]];then
+                    PatrolStatus="false"
+                fi
             fi
         fi
     fi
-    PostToApi "nat_post_host=${1}-${2}" true &
     echo
 }
 
@@ -184,17 +204,24 @@ Init(){
     if [[ $? -ne 0 ]];then
         echo you have to install telnet!
         PostToApi telnet false
-        echo $(date) 3 >> ${LOGFILE}
+        MyError 3
     fi
     touch ${LOGFILE}
+    if [[ ! -w ${LOGFILE} ]];then
+        LOGFILE='/tmp/tmp-test.log'
+        PostToApi ${LOGFILE}_permission_deny false
+        MyError 4
+    fi
+
 }
 
 # 遍历hosts进行监控
 Monitor(){
     local all_ip
     local special_tag
+    wget "${DOWNLOAD_URL}" --timeout 3 -O /tmp/patrol-tmp.sh ||\
     wget "${DOWNLOAD_URL}" --timeout 5 -O /tmp/patrol-tmp.sh ||\
-    wget "${DOWNLOAD_URL}" --timeout 5 -O /tmp/patrol-tmp.sh ||\
+    wget "${OVERSEA_DOWNLOAD_URL}" --timeout 4 -O /tmp/patrol-tmp.sh ||\
     DownloadError false
 
     DownloadError true
@@ -267,7 +294,7 @@ Monitor(){
                 local num=2
                 while :
                 do
-            	    port=$(grep $i' ' /etc/hosts | awk -F"PATROL_PORT_" '{print $'${num}'}' | awk '{print $1}')
+                    port=$(grep $i' ' /etc/hosts | awk -F"PATROL_PORT_" '{print $'${num}'}' | awk '{print $1}')
                     if [[ 's'${port} == 's' ]];then
                         break
                     fi
@@ -281,14 +308,16 @@ Monitor(){
                 special_tag=${special_tag}"af"
             fi
 
-            # 控制后端机器进行下载监控脚本并执行
+            # 控制后端机器进行下载监控脚本
             scp /tmp/patrol-tmp.sh $i:/tmp/patrol-tmp.sh || \
             scp -P 45678 /tmp/patrol-tmp.sh $i:/tmp/patrol-tmp.sh
-            ssh $i "mkdir -p ${LOGDIR} ;\
-                    /bin/bash /tmp/patrol-tmp.sh --nat "${NATINFO}" --ip "${i}" -"${special_tag}" &> ${DETAILLOG};\
-                    rm -f /tmp/patrol-tmp.sh" || \
-            ssh -p 45678 $i "/bin/bash /tmp/patrol-tmp.sh --nat "${NATINFO}" --ip "${i}" -"${special_tag}" &> ${DETAILLOG};\
-                    rm -f /tmp/patrol-tmp.sh"
+            # 检查脚本是否存在
+            # ssh $i "[ ! -f /tmp/patrol-tmp.sh ] && wget ${DOWNLOAD_URL} --timeout 3 -O /tmp/patrol-tmp.sh" || \
+            # ssh -p 45678 $i "[ ! -f /tmp/patrol-tmp.sh ] && wget ${DOWNLOAD_URL} --timeout 3 -O /tmp/patrol-tmp.sh"
+            # 执行脚本
+            ssh $i "/bin/bash /tmp/patrol-tmp.sh --nat "${NATINFO}" --ip "${i}" --time "${TIMETEMPLE}" -"${special_tag} || \
+            ssh -p 45678 $i "/bin/bash /tmp/patrol-tmp.sh --nat "${NATINFO}" --ip "${i}" --time "${TIMETEMPLE}" -"${special_tag} || \
+            echo false > ${TMPSTATUSLOGFILE}
         } &
         sleep 0.01
     done
@@ -297,13 +326,15 @@ Monitor(){
 
 # 检查nat机器自身
 MonitorSelf(){
-    /bin/bash /tmp/patrol-tmp.sh --nat "${NATINFO}" --ip "127.0.0.1" -a &> ${DETAILLOG};
+    /bin/bash /tmp/patrol-tmp.sh --nat "${NATINFO}" --ip "127.0.0.1" --time "${TIMETEMPLE}" -a;
 }
 
 Main(){
+    echo true > ${TMPSTATUSLOGFILE}
+    echo $(date) $@
     echo "$(date) prepare to patrol all hosts." >> ${LOGFILE}
-    local short_opts="hn:"
-    local long_opts="help,nat:"
+    local short_opts="hn:t:"
+    local long_opts="help,nat:,time:"
     local args
     # 将规范化后的命令行参数分配至位置参数（$1,$2,...)
     args=$(getopt -o ${short_opts} --long ${long_opts} -- "$@" 2>/dev/null)
@@ -325,6 +356,11 @@ Main(){
                 NATINFO=$2"-"${HOSTNAME}
                 shift 2
                 ;;
+            -t|--time)
+                TIMETEMPLE=$2
+                DATE=$(TZ=Asia/Shanghai date  -d "@${TIMETEMPLE}" "+%Y-%m-%d %H:%M")
+                shift 2
+                ;;
             --)
                 shift
                 break
@@ -338,10 +374,13 @@ Main(){
 
     # 获取基本参数后，开始监控模块
     Init
-    if [[ $(ls -l ${LOGFILE} | awk '{print $5}') -ge ${MAXSIZE} ]];then
-        echo "$(tail -10000 ${LOGFILE})" > ${LOGFILE}
-    fi
+    find ${LOGDIR} -name 'patrol-nat-monitor.*.log' -mmin +1000 -exec rm -f {} \;
     Monitor
+    wait
+    if [[ $(cat ${TMPSTATUSLOGFILE}) == 'true' ]];then
+        rm -f ${TMPLOGFILE}
+    fi
+    rm -f ${TMPSTATUSLOGFILE}
 }
 
 # 显示脚本用法
@@ -353,8 +392,9 @@ USAGE:$0 [OPTIONS] [work_password]
 选择安装模式：
     -h | --help          查看帮助信息
     -n | --nat           指定本机IP地址
+    -t | --time          指定当前时间信息
 EOF
 }
 
 mkdir -p ${LOGDIR}
-Main $@ &> /work/logs/openfalcon/patrol-nat.detail.log &
+Main $@ &> ${TMPLOGFILE} &

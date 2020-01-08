@@ -143,11 +143,11 @@ func SshToNat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = sshDoShell(getNat, getPort, "wget -q "+NatShellDownloadUrl+" --timeout 10 -O /tmp/patrol-tmp.sh&&"+
-		"/usr/bin/nohup /bin/bash /tmp/patrol-tmp.sh --nat "+getNat+" &> /dev/null &&"+
-		"rm -f /tmp/patrol-tmp.sh")
+	err = sshDoShell(getNat, getPort, "wget -q "+NatShellDownloadUrl+" --timeout 10 -O /tmp/patrol-nat-tmp.sh&&"+
+		"/usr/bin/nohup /bin/bash /tmp/patrol-nat-tmp.sh --nat "+getNat+" --time "+
+		strconv.FormatInt(time.Now().Unix(), 10)+" &&"+"rm -f /tmp/patrol-tmp.sh")
 	if err != nil {
-		WriteLog("ssh error:" + r.RemoteAddr)
+		WriteLog("ssh error: " + getNat + " " + err.Error() + r.RemoteAddr)
 		body, _, err := httpPostJson("ssh-to-nat-"+getNat, "false")
 		if err != nil {
 			WriteLog("post error:" + r.RemoteAddr + " - " + err.Error())

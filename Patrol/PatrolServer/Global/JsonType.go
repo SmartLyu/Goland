@@ -28,8 +28,8 @@ type ErrorJson struct {
 }
 
 type HostsTable struct {
-	IP   string `json:"IP"`
-	Time string `json:"TIME"`
+	IP       string `json:"IP"`
+	HostName string `json:"hostname"`
 }
 
 type DateTimeStyle struct {
@@ -40,7 +40,7 @@ type DateTimeStyle struct {
 	Minute string
 }
 
-func ReadJson(mj MonitorJson) (string) {
+func ReadJson(mj MonitorJson) string {
 	js, _ := json.Marshal(&mj)
 	return string(js)
 }

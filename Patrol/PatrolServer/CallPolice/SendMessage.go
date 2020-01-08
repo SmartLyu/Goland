@@ -50,7 +50,10 @@ type sendMsgError struct {
 	Errmsg  string `json:"errmsg"`
 }
 
-func ForceSendMessage(id corpText) error{
+func ForceSendMessage(id corpText) error {
+	Global.PoliceLock.Lock()
+	defer Global.PoliceLock.Unlock()
+
 	corpid := id.corpid
 	corpsecret := id.corpsecret
 
@@ -82,7 +85,7 @@ func ForceSendMessage(id corpText) error{
 }
 
 func SendWeiXinMessage(id corpText) error {
-	if ! Global.IsPolice {
+	if !Global.IsPolice {
 		return nil
 	}
 	return ForceSendMessage(id)
@@ -90,6 +93,7 @@ func SendWeiXinMessage(id corpText) error {
 
 //发送消息.msgbody 必须是 API支持的类型
 func SendMsg(TimeAccessToken string, msgbody []byte) error {
+
 	body := bytes.NewBuffer(msgbody)
 	resp, err := http.Post(sendurl+TimeAccessToken, "application/json", body)
 	if resp.StatusCode != 200 {

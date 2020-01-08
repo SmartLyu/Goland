@@ -8,19 +8,20 @@ import (
 )
 
 var (
-	ApiPost          = "8666"                      // 程序端口
-	ApiPublicPost    = "8686"                      // 对外程序端口
-	DataFileDir      = "/work/data/patrol/"        // 存放历史监控信息
-	DataFileName     = ".monitor.log"              // 监控后缀名
-	LogFileDir       = "/work/logs/patrol/"        // 日志存放目录(提前准备好)
-	LogFileName      = ".patrol.log"               // 日志后缀名
-	ErrorFileName    = ".error.log"                // 异常日志后缀名
-	AcessLogFileName = ".access.log"               // 记录日志信息
-	MonitorShellFile = "/work/sh/PatrolMonitor.sh" // 巡查脚本存放位置
-	NatShellFile     = "/work/sh/NatPatrol.sh"     // Nat使用的巡查脚本存放位置
-	ErrorMap         = NewErrorMapType()           // 存储报警信息至内存
-	NatHostsMap      = NewNatHostsMapType()        // 存储Nat机器中子服务器信息至内存
-	FileWriteLock    sync.Mutex                    // 文件书写锁
+	ApiPost           = "8666"                      // 程序端口
+	ApiPublicPost     = "8686"                      // 对外程序端口
+	DataFileDir       = "/work/data/patrol/"        // 存放历史监控信息
+	DataFileName      = ".monitor.log"              // 监控后缀名
+	LogFileDir        = "/work/logs/patrol/"        // 日志存放目录(提前准备好)
+	LogFileName       = ".patrol.log"               // 日志后缀名
+	ErrorFileName     = ".error.log"                // 异常日志后缀名
+	AcessLogFileName  = ".access.log"               // 记录日志信息
+	PoliceLogFileName = ".police.log"               // 报警日志信息
+	MonitorShellFile  = "/work/sh/PatrolMonitor.sh" // 巡查脚本存放位置
+	NatShellFile      = "/work/sh/NatPatrol.sh"     // Nat使用的巡查脚本存放位置
+	ErrorMap          = NewErrorMapType()           // 存储报警信息至内存
+	NatHostsMap       = NewNatHostsMapType()        // 存储Nat机器中子服务器信息至内存
+	FileWriteLock     sync.Mutex                    // 文件书写锁
 
 	ErrorMax              = 2                              // 最多报警次数
 	MaxSearchLen    int64 = 300                            // 搜索文件最大次数
@@ -29,7 +30,9 @@ var (
 	ListenSig             = make(chan int)                 // 监听后台阻塞信号
 	ListenPublicSig       = make(chan int)                 // 监听后台公共端口阻塞信号
 	CocoUrl               = "http://10.4.0.4:8666/monitor" // coco的端口
-	IsPolice              = true                           // 是否报警
+
+	IsPolice              = true // 是否报警
+	PoliceLock sync.Mutex        // 报警发锁
 )
 
 // 自动分隔巡查信息

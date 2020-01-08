@@ -10,9 +10,11 @@ var (
 	AccessLog *log.Logger
 	InfoLog   *log.Logger
 	ErrorLog  *log.Logger
+	PoliceLog *log.Logger
 )
 
 func Log() {
+	// 系统日志
 	file, err := os.OpenFile(UpdateLog(LogFileName), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		log.Fatalln(UpdateLog(LogFileName) + " 文件无法打开")
@@ -21,6 +23,7 @@ func Log() {
 		"",
 		log.Ldate|log.Ltime|log.Lshortfile)
 
+	// 错误日志
 	file, err = os.OpenFile(UpdateLog(ErrorFileName), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		log.Fatalln(UpdateLog(ErrorFileName) + " 文件无法打开")
@@ -29,11 +32,21 @@ func Log() {
 		"",
 		log.Ldate|log.Ltime|log.Lshortfile)
 
+	// 访问日志
 	file, err = os.OpenFile(UpdateLog(AcessLogFileName), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		log.Fatalln(UpdateLog(AcessLogFileName) + " 文件无法打开")
 	}
 	AccessLog = log.New(file,
+		"",
+		log.LstdFlags)
+
+	// 报警日志
+	file, err = os.OpenFile(UpdateLog(PoliceLogFileName), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalln(UpdateLog(PoliceLogFileName) + " 文件无法打开")
+	}
+	PoliceLog = log.New(file,
 		"",
 		log.LstdFlags)
 }
@@ -57,6 +70,12 @@ func CutLog() {
 		return
 	}
 	ErrorLog.SetOutput(file)
+
+	file, err = os.OpenFile(UpdateLog(PoliceLogFileName), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalln(UpdateLog(PoliceLogFileName) + " 文件无法打开")
+	}
+	PoliceLog.SetOutput(file)
 }
 
 // 自动分隔日志文件

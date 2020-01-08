@@ -62,16 +62,22 @@ func (m *ErrorMapType) Delete(key string) {
 	delete(m.Data, key)
 }
 
+// 存储状态和hostname的信息
+type StatusAndHostNameJson struct {
+	Status   bool
+	Hostname string
+}
+
 // 存储Nat机器中子服务器信息至内存
 type NatHostsMapType struct {
-	Data map[HostsTable]bool
+	Data map[string]StatusAndHostNameJson
 	Lock sync.Mutex
 }
 
 // 初始化创建map
 func NewNatHostsMapType() *NatHostsMapType {
 	return &NatHostsMapType{
-		Data: make(map[HostsTable]bool),
+		Data: make(map[string]StatusAndHostNameJson),
 	}
 }
 
@@ -80,25 +86,25 @@ func (m *NatHostsMapType) Exist(ht HostsTable) bool {
 	m.Lock.Lock()
 	defer m.Lock.Unlock()
 
-	if _, isError := m.Data[ht]; isError {
+	if _, isError := m.Data[ht.IP]; isError {
 		return true
 	} else {
 		return false
 	}
 }
 
-func (m *NatHostsMapType) Get(ht HostsTable) bool {
+func (m *NatHostsMapType) Get(ht HostsTable) StatusAndHostNameJson {
 	m.Lock.Lock()
 	defer m.Lock.Unlock()
 
-	return m.Data[ht]
+	return m.Data[ht.IP]
 }
 
 func (m *NatHostsMapType) Delete(ht HostsTable) {
 	m.Lock.Lock()
 	defer m.Lock.Unlock()
 
-	delete(m.Data, ht)
+	delete(m.Data, ht.IP)
 }
 
 // 值状态更改
@@ -106,17 +112,9 @@ func (m *NatHostsMapType) Change(ht HostsTable, status bool) {
 	m.Lock.Lock()
 	defer m.Lock.Unlock()
 
-	m.Data[ht] = status
-}
-
-// 获取所有值
-func (m *NatHostsMapType) Getall() (keys []HostsTable, values []bool) {
-	m.Lock.Lock()
-	defer m.Lock.Unlock()
-
-	for key, value := range m.Data {
-		keys = append(keys, key)
-		values = append(values, value)
+	var tmpStatus = StatusAndHostNameJson{
+		Status:   status,
+		Hostname: ht.HostName,
 	}
-	return
+	m.Data[ht.IP] = tmpStatus
 }

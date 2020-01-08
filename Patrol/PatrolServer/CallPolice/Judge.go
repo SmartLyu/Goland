@@ -12,9 +12,11 @@ func Judge(monitorjson Global.MonitorJson) {
 		if Global.ErrorMap.Exist(mapkey) &&
 			Global.ErrorMap.Get(mapkey) <= Global.ErrorMax {
 			if monitorjson.Hostname == "PatrolMessage" {
-				CallMessage(monitorjson.Hostname + " 的 " + monitorjson.Info + " 异常 \n具体服务器信息：\n   " + monitorjson.IP)
+				CallMessage(monitorjson.Hostname+" 的 "+monitorjson.Info+" 异常 ", "具体服务器信息： "+
+					monitorjson.IP, "   异常发生时间："+monitorjson.Time)
 			} else {
-				CallPolice(monitorjson.Hostname + " 的 " + monitorjson.Info + " 异常 \n具体服务器信息：\n   " + monitorjson.IP)
+				CallPolice(monitorjson.Hostname+" 的 "+monitorjson.Info+" 异常 ", "具体服务器信息： "+
+					monitorjson.IP, "   异常发生时间："+monitorjson.Time)
 			}
 
 		}
@@ -23,15 +25,16 @@ func Judge(monitorjson Global.MonitorJson) {
 		if Global.ErrorMap.Exist(mapkey) {
 			if Global.ErrorMap.Get(mapkey) >= 2 {
 				if monitorjson.Hostname == "PatrolMessage" {
-					CallMessage(monitorjson.Hostname + " 的 " + monitorjson.Info + " 状态已经恢复")
+					CallMessage(monitorjson.Hostname+" 的 "+monitorjson.Info+" 状态已经恢复",
+						"   恢复发生时间："+monitorjson.Time)
 				} else {
-					CallRestore(monitorjson.Hostname + " 的 " + monitorjson.Info + " 状态已经恢复")
+					CallRestore(monitorjson.Hostname+" 的 "+monitorjson.Info+" 状态已经恢复",
+						"   恢复发生时间："+monitorjson.Time)
 				}
 			}
 			Global.ErrorMap.Delete(mapkey)
 		}
 	}
-	Global.InfoLog.Println("获取到 " + monitorjson.IP + " 的 " + monitorjson.Hostname +
+	Global.InfoLog.Println(monitorjson.Time + " 获取到 " + monitorjson.IP + " 的 " + monitorjson.Hostname +
 		"\t的数据：" + monitorjson.Info + " 的状态为：" + strconv.FormatBool(monitorjson.Status))
-
 }
