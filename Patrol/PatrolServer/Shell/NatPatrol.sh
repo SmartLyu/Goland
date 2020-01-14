@@ -374,7 +374,7 @@ Main(){
 
     # 获取基本参数后，开始监控模块
     Init
-    find ${LOGDIR} -name 'patrol-nat-monitor.*.log' -mmin +1000 -exec rm -f {} \;
+    find ${LOGDIR} -name 'patrol-nat-detail.*.log' -mmin +1000 -exec rm -f {} \;
     Monitor
     wait
     if [[ $(cat ${TMPSTATUSLOGFILE}) == 'true' ]];then

@@ -26,7 +26,6 @@ func Judge(monitorjson Global.MonitorJson) {
 						monitorjson.IP, "   异常发生时间："+monitorjson.Time)
 				}
 			}
-
 		}
 		Global.ErrorMap.Add(mapkey, 1)
 	} else {
