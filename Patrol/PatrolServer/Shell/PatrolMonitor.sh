@@ -22,6 +22,7 @@ LOGFILE="${LOGDIR}/patrol-monitor.log"
 RETRYLOGFILE="${LOGDIR}/retry.log"
 TMPLOGFILE="${LOGDIR}/patrol-detail.$(TZ=Asia/Shanghai date "+%Y-%m-%d-%H-%M").log"
 TMPCPULOGFILE="/tmp/.patrol.cpu.tmp.$(TZ=Asia/Shanghai date "+%s").log"
+TMPMYSQLLOGFILE="/tmp/.patrol.mysql.tmp.$(TZ=Asia/Shanghai date "+%s").log"
 TMPSTATUSLOGFILE="/tmp/.patrol.status.tmp.$(TZ=Asia/Shanghai date "+%s").log"
 
 # 海外加速连接通道
@@ -91,7 +92,12 @@ CheckCpu(){
     if [[ ${cpu_number} == 1 ]] || [[ ${cpu_number} == 2 ]];then
         return
     fi
-    cpu=$(cat ${TMPCPULOGFILE} |grep Cpu | tail -1 | cut -d "," -f 1 | cut -d ":" -f 2 | awk '{print $1}');
+    if [[ -f ${TMPCPULOGFILE} ]];then
+        cpu=$(cat ${TMPCPULOGFILE} |grep Cpu | tail -1 | cut -d "," -f 1 | cut -d ":" -f 2 | awk '{print $1}');
+    else
+        top -bn 1
+        cpu=$(top -bn 1 |grep Cpu | tail -1 | cut -d "," -f 1 | cut -d ":" -f 2 | awk '{print $1}');
+    fi
 
     echo $cpu | grep '%'
     if [[ $? -eq 0 ]];then
@@ -260,10 +266,11 @@ CheckMysqlSlave(){
     local io_status=1
     local sql_status=0
 
-    strace /work/servers/mysql/bin/mysql -u root -h 127.0.0.1 -pk8U@*hy4icomxz -e 'show slave status\G'
-    /work/servers/mysql/bin/mysql -u root -h 127.0.0.1 -pk8U@*hy4icomxz -e 'show slave status\G' | grep 'Slave_IO_Running: Yes'
+    timeout 5 strace /work/servers/mysql/bin/mysql -u root -h 127.0.0.1 -pk8U@*hy4icomxz -e 'show slave status\G' &> ${TMPMYSQLLOGFILE}
+    cat ${TMPMYSQLLOGFILE}
+    grep 'Slave_IO_Running: Yes' ${TMPMYSQLLOGFILE}
     io_status=$?
-    /work/servers/mysql/bin/mysql -u root -h 127.0.0.1 -pk8U@*hy4icomxz -e 'show slave status\G' | grep 'Slave_SQL_Running: Yes'
+    grep 'Slave_SQL_Running: Yes' ${TMPMYSQLLOGFILE}
     if [[ $? -ne 0 ]];then
         ps -aux | grep LogicBackupMysql | grep -v grep
         sql_status=$?
@@ -466,7 +473,7 @@ Main(){
     if [[ $(cat ${TMPSTATUSLOGFILE}) == 'true' ]];then
         rm -f ${TMPLOGFILE}
     fi
-    rm -f ${TMPSTATUSLOGFILE} ${TMPCPULOGFILE}
+    rm -f ${TMPSTATUSLOGFILE} ${TMPCPULOGFILE} ${TMPMYSQLLOGFILE}
 }
 
 # 显示脚本用法

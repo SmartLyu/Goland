@@ -51,9 +51,6 @@ type sendMsgError struct {
 }
 
 func ForceSendMessage(id corpText) error {
-	Global.PoliceLock.Lock()
-	defer Global.PoliceLock.Unlock()
-
 	corpid := id.corpid
 	corpsecret := id.corpsecret
 

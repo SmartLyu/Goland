@@ -225,7 +225,7 @@ Monitor(){
     DownloadError false
 
     DownloadError true
-    all_ip=$(awk '{print $1}' /etc/hosts | grep -v ^# |  grep -v ^$ | grep -E ^\(10\)\\..*\|\(172\)\\..*\|\(192\)\\..*)
+    all_ip=$(awk '{print $1}' /etc/hosts | grep -v ^# |  grep -v ^$ | grep -E ^\(10\)\\..*\|\(172\)\\..*\|\(192\)\\..* | sort | uniq)
 
     for i in ${all_ip}
     do
