@@ -143,6 +143,13 @@ func SshToNat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// 返回信息
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusCreated)
+	if err := json.NewEncoder(w).Encode(getNat); err != nil {
+		WriteLog(err.Error())
+	}
+
 	err = sshDoShell(getNat, getPort, "wget -q "+NatShellDownloadUrl+" --timeout 10 -O /tmp/patrol-nat-tmp.sh&&"+
 		"/usr/bin/nohup /bin/bash /tmp/patrol-nat-tmp.sh --nat "+getNat+" --time "+
 		strconv.FormatInt(time.Now().Unix(), 10)+" &&"+"rm -f /tmp/patrol-tmp.sh")
@@ -153,13 +160,7 @@ func SshToNat(w http.ResponseWriter, r *http.Request) {
 			WriteLog("post error:" + r.RemoteAddr + " - " + err.Error())
 		}
 		WriteLog(body)
-	}
-
-	// 返回信息
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusCreated)
-	if err := json.NewEncoder(w).Encode(getNat); err != nil {
-		WriteLog(err.Error())
+		return
 	}
 
 	body, _, err := httpPostJson("ssh-to-nat-"+getNat, "true")

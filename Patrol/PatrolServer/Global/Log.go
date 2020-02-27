@@ -48,7 +48,7 @@ func Log() {
 	}
 	PoliceLog = log.New(file,
 		"",
-		log.LstdFlags)
+		log.Ldate|log.Ltime|log.Lshortfile)
 }
 
 func CutLog() {
