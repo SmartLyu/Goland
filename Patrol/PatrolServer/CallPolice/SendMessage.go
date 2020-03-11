@@ -1,7 +1,6 @@
 package CallPolice
 
 import (
-	"../Global"
 	"bytes"
 	"encoding/json"
 	"errors"
@@ -45,12 +44,7 @@ type sendMsg struct {
 	Safe    int               `json:"safe"`
 }
 
-type sendMsgError struct {
-	Errcode int    `json:"errcode"`
-	Errmsg  string `json:"errmsg"`
-}
-
-func ForceSendMessage(id corpText) error {
+func SendWeiXinMessage(id corpText) error {
 	corpid := id.corpid
 	corpsecret := id.corpsecret
 
@@ -79,13 +73,6 @@ func ForceSendMessage(id corpText) error {
 	}
 
 	return nil
-}
-
-func SendWeiXinMessage(id corpText) error {
-	if !Global.IsPolice {
-		return nil
-	}
-	return ForceSendMessage(id)
 }
 
 //发送消息.msgbody 必须是 API支持的类型
