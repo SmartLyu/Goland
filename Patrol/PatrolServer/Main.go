@@ -34,7 +34,7 @@ func main() {
 	// 刚刚开始任务暂时不启动报警
 	Global.IsPolice = false
 	go func() {
-		time.Sleep(time.Minute * 10)
+		time.Sleep(time.Minute * 2)
 		if !Global.IsPolice {
 			Global.IsPolice = true
 		}

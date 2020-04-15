@@ -11,11 +11,12 @@ import (
 
 func CallCoco(hostname string, ip string, port string) {
 	err := httpPostJson(ip, port)
+	Global.InfoLog.Println("start call coco to ssh", hostname, "-", ip)
 	if err == nil {
 		jsonfile := Global.MonitorJson{
 			Time:     time.Now().Format("2006-01-02 15:04"),
 			IP:       "123.207.233.139-JH-Bak-QCloudGZ3-Nat=}10.4.0.17",
-			Hostname: "PatrolMessage",
+			Hostname: Global.PatrolMessageString,
 			Info:     "callCoco-" + hostname + "-" + ip,
 			Status:   true,
 		}
@@ -30,7 +31,7 @@ func CallCoco(hostname string, ip string, port string) {
 			jsonfile := Global.MonitorJson{
 				Time:     time.Now().Format("2006-01-02 15:04"),
 				IP:       "123.207.233.139-JH-Bak-QCloudGZ3-Nat=}10.4.0.17",
-				Hostname: "PatrolMessage",
+				Hostname: Global.PatrolMessageString,
 				Info:     "callCoco-" + hostname + "-" + ip,
 				Status:   false,
 			}
@@ -42,7 +43,7 @@ func CallCoco(hostname string, ip string, port string) {
 			jsonfile := Global.MonitorJson{
 				Time:     time.Now().Format("2006-01-02 15:04"),
 				IP:       "123.207.233.139-JH-Bak-QCloudGZ3-Nat=}10.4.0.17",
-				Hostname: "PatrolMessage",
+				Hostname: Global.PatrolMessageString,
 				Info:     "callCoco-" + hostname + "-" + ip,
 				Status:   true,
 			}

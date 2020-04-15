@@ -40,6 +40,11 @@ type DateTimeStyle struct {
 	Minute string
 }
 
+type DingdingAtJson struct {
+	Hostname string `json:"hostname"`
+	Mobiles  []int  `json:"mobiles"`
+}
+
 func ReadJson(mj MonitorJson) string {
 	js, _ := json.Marshal(&mj)
 	return string(js)

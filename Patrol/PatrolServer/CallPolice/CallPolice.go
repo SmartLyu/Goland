@@ -5,46 +5,34 @@ import (
 	"time"
 )
 
-func CallPolice(message ...string) {
-	Global.PoliceLog.Println(Global.IsPolice, message)
-	policeMessage := "巡查发现异常：" + time.Now().Format("2006年01月02日 15时04分05秒")
+func CallPolice(id DingdingID, message ...string) {
+	Global.PoliceLog.Println(Global.IsPolice, id.dingdingJson.At.AtMobiles, message)
+	// 钉钉通知所有人
+	id.memssage = "巡查发现异常：" + time.Now().Format("2006年01月02日 15时04分05秒")
 	for _, i := range message {
-		policeMessage = policeMessage + "\n" + i
+		id.memssage = id.memssage + "\n" + i
 	}
-
-	if err := SendPoliceMessage(policeMessage, "失败"); err != nil {
-		Global.ErrorLog.Println(err.Error())
-		CallMessage("报警请求异常：" + err.Error())
-	} else {
-		Global.InfoLog.Println("Message:" + policeMessage + " successfully")
-	}
+	SendPoliceMessage(id)
 }
 
-func CallRestore(message ...string) {
-	Global.PoliceLog.Println(Global.IsPolice, message)
-	policeMessage := "巡查发现恢复：" + time.Now().Format("2006年01月02日 15时04分05秒")
+func CallRestore(id DingdingID, message ...string) {
+	Global.PoliceLog.Println(Global.IsPolice, id.dingdingJson.At.AtMobiles, message)
+	id.dingdingJson.At.AtMobiles = nil
+	// 钉钉通知所有人
+	id.memssage = "巡查发现恢复：" + time.Now().Format("2006年01月02日 15时04分05秒")
 	for _, i := range message {
-		policeMessage = policeMessage + "\n" + i
+		id.memssage = id.memssage + "\n" + i
 	}
-
-	if err := SendPoliceMessage(policeMessage, "成功"); err != nil {
-		Global.ErrorLog.Println(err.Error())
-	} else {
-		Global.InfoLog.Println("Message:" + policeMessage + " successfully")
-	}
+	SendPoliceMessage(id)
 }
 
 func CallMessage(message ...string) {
 	Global.PoliceLog.Println(Global.IsPolice, message)
-	id := MessageId
-	id.content = "巡查系统日志：" + time.Now().Format("2006年01月02日 15时04分05秒")
+	// 钉钉通知负责人
+	id := messageDingdingID
+	id.memssage = "巡查系统日志：" + time.Now().Format("2006年01月02日 15时04分05秒")
 	for _, i := range message {
-		id.content = id.content + "\n" + i
+		id.memssage = id.memssage + "\n" + i
 	}
-
-	if err := SendWeiXinMessage(id); err != nil {
-		Global.ErrorLog.Println(err.Error())
-	} else {
-		Global.InfoLog.Println("Message:" + id.content + " successfully")
-	}
+	SendPoliceMessage(id)
 }

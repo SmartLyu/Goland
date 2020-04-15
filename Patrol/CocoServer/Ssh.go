@@ -133,6 +133,7 @@ func SshToNat(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		WriteLog("Recv:" + r.RemoteAddr)
 	}
+	tmpTime := strconv.FormatInt(time.Now().Unix(), 10)
 
 	// 读取用户输入的参数信息
 	getNat := r.Form.Get("nat")
@@ -152,7 +153,7 @@ func SshToNat(w http.ResponseWriter, r *http.Request) {
 
 	err = sshDoShell(getNat, getPort, "wget -q "+NatShellDownloadUrl+" --timeout 10 -O /tmp/patrol-nat-tmp.sh&&"+
 		"/usr/bin/nohup /bin/bash /tmp/patrol-nat-tmp.sh --nat "+getNat+" --time "+
-		strconv.FormatInt(time.Now().Unix(), 10)+" &&"+"rm -f /tmp/patrol-tmp.sh")
+		tmpTime+" &&"+"rm -f /tmp/patrol-tmp.sh")
 	if err != nil {
 		WriteLog("ssh error: " + getNat + " " + err.Error() + r.RemoteAddr)
 		body, _, err := httpPostJson("ssh-to-nat-"+getNat, "false")
@@ -168,6 +169,6 @@ func SshToNat(w http.ResponseWriter, r *http.Request) {
 		WriteLog("post error:" + r.RemoteAddr + " - " + err.Error())
 	}
 	WriteLog(body)
-	WriteLog(time.Now().Format("2006.01.02 15:04") + "\t ssh " + getNat + " successfully")
+	WriteLog(time.Now().Format("2006.01.02 15:04") + "\t ssh " + getNat + " - " + tmpTime + " successfully")
 	return
 }
