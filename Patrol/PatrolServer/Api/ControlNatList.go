@@ -33,7 +33,7 @@ func AddNatMonitor(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(422) // unprocessable entity
 		if err := json.NewEncoder(w).Encode(err); err != nil {
-			Global.ErrorLog.Println(err.Error())
+			Global.ErrorLog.Println(err.Error(), ", data is ", body)
 		}
 	}
 
@@ -77,7 +77,7 @@ func DeleteNatMonitor(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(422) // unprocessable entity
 		if err := json.NewEncoder(w).Encode(err); err != nil {
-			Global.ErrorLog.Println(err.Error())
+			Global.ErrorLog.Println(err.Error(), ", data is ", body)
 		}
 	}
 
@@ -121,7 +121,7 @@ func UpdataNatMonitor(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(422) // unprocessable entity
 		if err := json.NewEncoder(w).Encode(err); err != nil {
-			Global.ErrorLog.Println(err.Error())
+			Global.ErrorLog.Println(err.Error(), ", data is ", body)
 		}
 	}
 

@@ -90,7 +90,7 @@ func SendMsg(TimeAccessToken string, msgbody []byte) error {
 	err = json.Unmarshal(buf, &e)
 
 	if err != nil {
-		return err
+		return errors.New(err.Error() + ", data is" + string(buf))
 	}
 
 	if e.Errcode != 0 && e.Errmsg != "ok" {

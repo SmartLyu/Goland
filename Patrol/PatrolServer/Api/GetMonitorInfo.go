@@ -31,7 +31,7 @@ func PostMonitorInfo(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(422) // unprocessable entity
 		if err := json.NewEncoder(w).Encode(err); err != nil {
-			Global.ErrorLog.Println(err.Error())
+			Global.ErrorLog.Println(err.Error(), ", data is ", body)
 		}
 		if !jsonfile.Exist() {
 			Global.InfoLog.Println("Error: has got empty json data")
@@ -79,7 +79,7 @@ func PostNatInfo(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(422) // unprocessable entity
 		if err := json.NewEncoder(w).Encode(err); err != nil {
-			Global.ErrorLog.Println(err.Error())
+			Global.ErrorLog.Println(err.Error(), ", data is ", body)
 		}
 	}
 

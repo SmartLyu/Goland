@@ -41,8 +41,21 @@ type DateTimeStyle struct {
 }
 
 type DingdingAtJson struct {
-	Hostname string `json:"hostname"`
-	Mobiles  []int  `json:"mobiles"`
+	Hostname string   `json:"hostname"`
+	Members  []string `json:"members"`
+}
+
+type DingdingMobilesJson struct {
+	Member  string `json:"member"`
+	Mobiles []int  `json:"mobiles"`
+}
+
+type IgnoreTimeJson struct {
+	IP        string `json:"ip"`
+	Hostname  string `json:"hostname"`
+	Info      string `json:"info"`
+	StartTime string `json:"starttime"`
+	EndTime   string `json:"endtime"`
 }
 
 func ReadJson(mj MonitorJson) string {
@@ -61,8 +74,14 @@ func (m *MonitorJson) Exist() bool {
 // sort 需要的接口配置
 type NameSorter []MonitorJson
 
-func (a NameSorter) Len() int      { return len(a) }
-func (a NameSorter) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a NameSorter) Len() int {
+	return len(a)
+}
+
+func (a NameSorter) Swap(i, j int) {
+	a[i], a[j] = a[j], a[i]
+}
+
 func (a NameSorter) Less(i, j int) bool {
 	if a[i].IP < a[j].IP {
 		return true
@@ -86,7 +105,7 @@ func (a NameSorter) Less(i, j int) bool {
 func ReadMonitorJson(body string) []MonitorJson {
 	var jsonfile []MonitorJson
 	if err := json.Unmarshal([]byte(body), &jsonfile); err != nil {
-		log.Fatal(err.Error())
+		log.Fatal(err.Error(), ", data is ", body)
 	}
 	sort.Sort(NameSorter(jsonfile))
 	return jsonfile

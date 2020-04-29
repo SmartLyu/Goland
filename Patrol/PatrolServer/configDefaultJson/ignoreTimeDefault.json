@@ -1,0 +1,16 @@
+[
+  {
+    "ip": "",
+    "hostname": "",
+    "info": "",
+    "starttime": "15:04:05",
+    "endtime": "15:04:05"
+  },
+  {
+    "ip": "127.0.0.1",
+    "hostname": "patrol",
+    "info": "cpu",
+    "starttime": "03:04:05",
+    "endtime": "15:04:05"
+  }
+]

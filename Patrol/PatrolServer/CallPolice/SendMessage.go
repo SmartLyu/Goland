@@ -11,14 +11,14 @@ func SendPoliceMessage(dingdingID DingdingID) {
 	weixinId := MessageId
 	weixinId.content = dingdingID.memssage
 	if err := SendWeiXinMessage(weixinId); err != nil {
-		Global.ErrorLog.Println(err.Error())
+		Global.ErrorLog.Println("send weixin error: ", err.Error())
 	} else {
 		Global.InfoLog.Println("WeiXin Message:" + weixinId.content + " successfully")
 	}
 
 	// 钉钉通知指定人员
 	if err := SendDingdingMessage(dingdingID); err != nil {
-		Global.ErrorLog.Println(err.Error())
+		Global.ErrorLog.Println("send dingding error: ", err.Error())
 	} else {
 		Global.InfoLog.Println("Dingding Message:" + dingdingID.memssage + " successfully")
 	}

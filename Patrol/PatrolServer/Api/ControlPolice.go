@@ -10,7 +10,7 @@ import (
 )
 
 // 修改是否报警
-func ChangPoliceStatus(w http.ResponseWriter) {
+func ChangPoliceStatus(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")             //允许访问所有域
 	w.Header().Add("Access-Control-Allow-Headers", "Content-Type") //header的类型
 	w.Header().Set("content-type", "application/json")             //返回数据格式是json
@@ -37,7 +37,7 @@ func ChangPoliceStatus(w http.ResponseWriter) {
 }
 
 // 显示是否报警
-func ReturnPoliceStatus(w http.ResponseWriter) {
+func ReturnPoliceStatus(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")             //允许访问所有域
 	w.Header().Add("Access-Control-Allow-Headers", "Content-Type") //header的类型
 	w.Header().Set("content-type", "application/json")             //返回数据格式是json
@@ -53,7 +53,7 @@ func ReturnPoliceStatus(w http.ResponseWriter) {
 }
 
 // 显示报警队列信息
-func ReturnPoliceMap(w http.ResponseWriter) {
+func ReturnPoliceMap(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")             //允许访问所有域
 	w.Header().Add("Access-Control-Allow-Headers", "Content-Type") //header的类型
 	w.Header().Set("content-type", "application/json")             //返回数据格式是json
