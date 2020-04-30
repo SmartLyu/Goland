@@ -19,25 +19,25 @@ var (
 	PoliceLogFileName   = ".police.log"                            // 报警日志信息
 	MonitorShellFile    = "/work/sh/PatrolMonitor.sh"              // 巡查脚本存放位置
 	NatShellFile        = "/work/sh/NatPatrol.sh"                  // Nat使用的巡查脚本存放位置
-	ErrorMap            = NewErrorMapType()                        // 存储报警信息至内存
-	NatHostsMap         = NewNatHostsMapType()                     // 存储Nat机器中子服务器信息至内存
-	PatrolMessageString = "PatrolMessage"                          // 报警为系统日志的hostname
 	DingdingDefaultAt   = "运维"                                     // 钉钉报警通知人员默认报警对象
 	DingdingAtFile      = "/work/apps/patrol/config/dingding.json" // 存储钉钉报警通知人员匹配配置
 	DingdingMobilesFile = "/work/apps/patrol/config/mobiles.json"  // 存储钉钉报警中人员电话的配置文件
 	IgnoreTimeFile      = "/work/apps/patrol/config/ignore.json"   // 存储监控不关心时间段的服务器信息
-	FileWriteLock       sync.Mutex                                 // 文件书写锁
 
-	ErrorMax              = 2                              // 最多报警次数
-	MaxSearchLen    int64 = 500                            // 搜索文件最大次数
-	MaxReturnLen    int64 = 1000000                        // 查询预估临界值
-	MaxSearchSigLen       = make(chan int, 30)             // 查询并发线程数
-	ListenSig             = make(chan int)                 // 监听后台阻塞信号
-	ListenPublicSig       = make(chan int)                 // 监听后台公共端口阻塞信号
-	CocoUrl               = "http://10.4.0.4:8666/monitor" // coco的端口
+	ErrorMax                  = 2                              // 最多报警次数
+	MaxSearchLen        int64 = 500                            // 搜索文件最大次数
+	MaxReturnLen        int64 = 1000000                        // 查询预估临界值
+	MaxSearchSigLen           = make(chan int, 30)             // 查询并发线程数
+	ListenSig                 = make(chan int)                 // 监听后台阻塞信号
+	ListenPublicSig           = make(chan int)                 // 监听后台公共端口阻塞信号
+	CocoUrl                   = "http://10.4.0.4:8666/monitor" // coco的端口
+	ErrorMap                  = NewErrorMapType()              // 存储报警信息至内存
+	NatHostsMap               = NewNatHostsMapType()           // 存储Nat机器中子服务器信息至内存
+	PatrolMessageString       = "PatrolMessage"                // 报警为系统日志的hostname
+	IsPolice                  = true                           // 是否报警
 
-	IsPolice              = true // 是否报警
-	PoliceLock sync.Mutex        // 报警发锁
+	PoliceLock    sync.Mutex // 报警发锁
+	FileWriteLock sync.Mutex // 文件书写锁
 )
 
 // 自动分隔巡查信息
