@@ -101,7 +101,7 @@ func upload(id configJson) {
 	}
 
 	// 打印x-oss-version-id。
-	InfoLog.Println("this case's x-oss-version-id:", oss.GetVersionId(retHeader))
+	InfoLog.Println("this case's x-oss-version-id:", oss.GetVersionId(retHeader), " upload successfully")
 
 	/* 分片操作
 	chunks, err := oss.SplitFileByPartNum(locaFilename, 3)

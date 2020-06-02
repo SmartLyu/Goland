@@ -28,7 +28,7 @@ func main() {
 	}
 	flag.IntVar(&routing, "route", 3, "输入上传并发数")
 	flag.StringVar(&tmpFileDir, "tmpDir", "/work/tmp/uploadToOss", "输入临时文件存放位置")
-	flag.StringVar(&module, "module", "check", "输入使用的功能模块(upload、check)")
+	flag.StringVar(&module, "module", "check", "输入使用的功能模块(upload、check、all)")
 
 	// 检验是否所有值都存在
 	flag.Parse()
@@ -45,7 +45,16 @@ func main() {
 	case "upload":
 		upload(conf)
 	case "check":
-		check(conf)
+		err := check(conf)
+		if err != nil {
+			ErrorLog.Println("check is error", err)
+			os.Exit(-1)
+		}
+	case "all":
+		err := check(conf)
+		if err != nil {
+			upload(conf)
+		}
 	default:
 		flag.Usage()
 		ErrorLog.Println("please input right module is not: ", module)
